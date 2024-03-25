@@ -1,0 +1,7 @@
+venv/
+.env
+.idea/
+*.egg-info
+__pycache__
+# mypy
+.dmypy.json
