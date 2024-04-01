@@ -22,6 +22,8 @@ setup(
         # mypy greenlet 3.0.3 version은 intel cpu를 지원하지 않는다
         'greenlet==2.0.2',
         'ccxt==4.2.82',
-        'pandas==2.2.1'
+        'pandas==2.2.1',
+        'pyupbit==0.2.33',
+        'PyJWT==2.8.0'
     ],
 )
