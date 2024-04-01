@@ -4,18 +4,17 @@ from pyupbit import Upbit
 import config
 
 
-class Upbit:
-    upbit: Upbit
-
+class UpbitData:
     def __init__(self):
-        upbit = Upbit(config.UPBIT_ACCESS_KEY, config.UPBIT_SECRET_KEY)
+        self.upbit = Upbit(config.UPBIT_ACCESS_KEY, config.UPBIT_SECRET_KEY)
 
     # 현재 보유 금액 조회
-    def get_balance_cash(self):
+    def get_balance_cash(self) -> float | None:
         return self.upbit.get_balance('KRW')
 
     # 현재가격 조회
-    def get_current_price(self, ticker: str):
+    @staticmethod
+    def get_current_price(ticker: str):
         return pyupbit.get_current_price(ticker)
 
     # 현재 코인 보유 수량 조회
@@ -26,19 +25,18 @@ class Upbit:
     def get_buy_average(self, ticker: str):
         return self.upbit.get_avg_buy_price(ticker)
 
-
-   # 주문 (미체결)정보 조회
-   def get_order_info(self, ticker_or_uuid: str):
-       try:
-           orders = self.upbit.get_order(ticker_or_uuid)
-           if 'error' in orders[0]:
-               print('error 발생!!!!!!!!!!!!!!!!')
-               return None
-           return orders[-1] # 마지막 주문건에 대한 정보
-       except Exception as e:
-           print('error 발생!!!!!!!!!!!!!!!!')
-           print(e)
-           return None
+    # 주문 (미체결)정보 조회
+    def get_order_info(self, ticker_or_uuid: str):
+        try:
+            orders = self.upbit.get_order(ticker_or_uuid)
+            if 'error' in orders[0]:
+                print('error 발생!!!!!!!!!!!!!!!!')
+                return None
+            return orders[-1]  # 마지막 주문건에 대한 정보
+        except Exception as e:
+            print('error 발생!!!!!!!!!!!!!!!!')
+            print(e)
+            return None
 
     # 시장가 매수
     def order_buy_market(self, ticker: str, buy_amount: float):
@@ -80,7 +78,6 @@ class Upbit:
             print(e)
             return 0
 
-
     # 지정가 매수
     def order_buy_limit(self, ticker: str, price: float, volume):
         """
@@ -99,7 +96,6 @@ class Upbit:
             print('error 발생!!!!!!!!!!!!!!!!')
             print(e)
             return 0
-
 
     # 지정가 매도
     def order_sell_limit(self, ticker: str, price: float, volume):
@@ -120,7 +116,6 @@ class Upbit:
             print(e)
         return 0
 
-
     # 주문 취소
     def order_cancel(self, ticker):
         order_info = self.get_order_info(ticker)
@@ -136,6 +131,98 @@ class Upbit:
         except Exception as e:
             print(e)
         return 0
+
+    # 볼린져 밴드(Bollinger band) 전략
+    '''
+        볼린져 밴드는 세 개의 선을 그리는 전략
+        1) 중심 밴드 (Middle Band) : 주가의 단순 이동평균선이며, 20일 이동 평균을 사용
+        2) 상단 밴드 (Upper Band) : 일반적으로 중심 밴드에서 2배의 표준 편차를 더한 값
+        3) 하단 밴드 (Lower Band) : 중심 밴드에서 2배의 표준 편차를 뺀 값
+    '''
+
+    def get_bollinger_bands(self, prices, window: int = 20, multiplier: int = 2):
+        '''
+        :param prices: 가격 데이터
+        :param window:  이동 평균을 계산하기 위한 기간
+        :param multiplier: 상단 밴드와 하단 밴드를 계산할 때 사용되는 표준 편차의 배수
+        '''
+
+        ### 20일 동안 이동 평균선 계산 (Middle Band)
+        sma = prices.rolling(window=window).mean()
+
+        ### 20일 동안의 표준 편차 계산
+        rolling_std = prices.rolling(window=window).std()
+
+        ### 중간 밴트 + (표준 편차 * 2)
+        upper_band = sma + (rolling_std * multiplier)
+
+        ### 중간 밴트 - (표준 편차 * 2)
+        lower_band = sma - (rolling_std * multiplier)
+
+        return upper_band, lower_band
+
+    def trading_signal(self, prices):
+        ### get_bollinger_bands() 를 통해 상단/하단 밴드 요청
+        upper_band, lower_band = self.get_bollinger_bands(prices)
+
+        band_high = upper_band.iloc[-1]
+        band_low = lower_band.iloc[-1]
+        current_price = self.get_current_price(ticker='KRW-BTC')
+
+        ### 상단 / 하단 / 현재가 출력
+        print(f'HIGH : {band_high} / LOW : {band_low} / PRICE : {current_price}')
+
+        '''
+            현재 가겨이 상단 밴드보다 큰 경우 'BUY 신호
+            하단 밴드보다 낮은 경우는 'SELL' 신호
+            밴드안에 있는 경우는 'HOLD' 신호 
+        '''
+        if current_price > band_high:
+            print('SELL SIGNAL')
+            return 'SELL'
+
+        if current_price < band_low:
+            print('BUY SIGNAL')
+            return 'BUY'
+
+        return 'HOLD'
+
+    def trading(self, ticker: str):
+        ### get_ohlcv 함수를 이용해서 업비트 사이트의 20일 데이터 받아오기
+        price_data = pyupbit.get_ohlcv(ticker, interval='day', count=20)
+        prices = price_data['close']
+        print('정보')
+        print(price_data)
+        print(prices)
+
+        ### 받아온 가격 데이터의 종가만을 추출 하여 trading_signal 호출
+        signal = self.trading_signal(prices=prices)
+        balance_cash = self.get_balance_cash()
+        balance_coin = self.get_balance_coin(ticker=ticker)
+
+        print('가격 정보')
+        print(signal)
+        print(balance_cash)
+        print(balance_coin)
+        # if balance_cash < 10_000:
+        #     print('잔액 부족!!!!!!!')
+        #     return None
+        #
+        # if signal == 'BUY':
+        #     print('BUY ORDER')
+        #     return self.order_buy_market(ticker=ticker, buy_amount=10_000)
+        #
+        # if signal == 'SELL' and balance_coin > 0:
+        #     print('SELL ORDER')
+        #     return self.order_sell_market(ticker=ticker, volume=balance_coin)
+
+        print('HOLD')
+        return None
+
+    def run(self):
+        ret = self.trading(ticker='KRW-BTC')
+        if ret is not None:
+            print(ret)
 
 # uuid	주문의 고유 식별자
 # side	주문 타입 ('ask'는 매도 / 'bid'는 매수 주문을 의미)
