@@ -1,0 +1,19 @@
+# python
+venv/
+*.egg-info
+__pycache__
+
+# pycharm
+.idea/
+*.http
+
+# mypy
+.dmypy.json
+/was/static/.webassets-cache/
+/was/static/assets/front*
+
+# dotenv
+.env*
+
+# tmp
+tmp

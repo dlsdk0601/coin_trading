@@ -1,7 +1,7 @@
 import ccxt
 import pandas
 
-import config
+from was import config
 
 
 class BinanceData:

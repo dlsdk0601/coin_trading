@@ -1,9 +1,9 @@
 import pyupbit
 from pyupbit import Upbit
 
-import config
-from src.common import calculate_trade_unit
-from src.logger import log
+from was import config
+from was.src.common import calculate_trade_unit
+from was.src.logger import log
 
 
 class UpbitData:

@@ -1,14 +1,16 @@
+_TMPDIR=$(TMPDIR)
+
 open: setup
-	nix-shell --run 'pycharm .'
+	nix-shell --run 'TMPDIR=${_TMPDIR} SHELL=/bin/zsh pycharm .'
 
 # 개발용 프로젝트 설정
 setup: venv
-	nix-shell --run 'venv/bin/pip install pip==24.0'
+	nix-shell --run 'venv/bin/pip install pip==24.3.1'
 	nix-shell --run 'venv/bin/pip install -e .'
 
 # 파이선 Virtual Environment
 venv:
-	nix-shell --run 'python3.11 -m venv venv'
+	nix-shell --run 'python3.12 -m venv venv'
 
 # mypy 타입 체크
 mypy-check:
