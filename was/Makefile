@@ -14,8 +14,8 @@ venv:
 
 # mypy 타입 체크
 mypy-check:
-# daemon mypy 로 webapp, ex, bin 아래 소스들 체크
-	venv/bin/dmypy run -- src ex bin
+# daemon mypy 로 ex, bin 아래 소스들 체크
+	venv/bin/dmypy run -- was bin
 
 watch:
 # watchmedo 는 최초 1회 실행이 없어서 그냥 먼저 실행한다.

@@ -2,8 +2,9 @@ import pyupbit
 from pyupbit import Upbit
 
 from was import config
-from was.src.common import calculate_trade_unit
-from was.src.logger import log
+from was.ex.calculate_trade_unit import calculate_trade_unit
+from was.ex.logger import log
+from was.model.coin import CoinType
 
 
 class UpbitData:
@@ -14,40 +15,63 @@ class UpbitData:
     def get_balance_cash(self) -> float | None:
         return self.upbit.get_balance('KRW')
 
-    # 현재가격 조회
     @staticmethod
-    def get_current_price(ticker: str):
-        return pyupbit.get_current_price(ticker)
+    def get_current_price(ticker: CoinType | list[CoinType]) -> float:
+        """현재가격 조회
+        :param ticker: (CoinType | list[CoinType]) 단일 티커 또는 티커 리스트
+        :return
+            float : 현재 가격 (원화)
+        """
 
-    # 현재 코인 보유 수량 조회
-    def get_balance_coin(self, ticker: str):
-        return self.upbit.get_balance(ticker)
+        # str 타입으로 넘겨야해서 처리한다
+        # upbit 에서 default 처리 해줘도 프로젝트 내에서는 필수값으로 한다.
+        match ticker:
+            case list():
+                tickers = list(map(lambda coin: coin.label, ticker))
+                return pyupbit.get_current_price(tickers)
+            case  _:
+                return pyupbit.get_current_price(ticker.label)
 
-    # 평균 매수가 조회
-    def get_buy_average(self, ticker: str):
+
+    def get_balance_coin(self, ticker: CoinType) -> float:
+        """현재 본인이 보유하고 있는 해당 코인 수량 조회
+        :param ticker: (CoinType) 단일 티커
+        :return
+            float : (float) 소유량
+        """
+        return self.upbit.get_balance(ticker.label)
+
+    def get_buy_average(self, ticker: CoinType) -> float:
+        """본인이 매수한 특정 코인의 평균 매수가 조회
+        :param ticker: (CoinType) 단일 티커
+        :return
+            float : 현재 가격 (원화)
+        """
         return self.upbit.get_avg_buy_price(ticker)
 
-    # 주문 (미체결)정보 조회
     def get_order_info(self, ticker_or_uuid: str):
+        """미체결 주문 정보 조회
+        :param ticker_or_uuid: (CoinType) 단일 티커
+        :return
+            float : 현재 가격 (원화)
+        """
         try:
             orders = self.upbit.get_order(ticker_or_uuid)
             if 'error' in orders[0]:
-                print('error 발생!!!!!!!!!!!!!!!!')
+                print(f'occur error {orders[0]=}')
                 return None
             return orders[-1]  # 마지막 주문건에 대한 정보
         except Exception as e:
-            print('error 발생!!!!!!!!!!!!!!!!')
-            print(e)
+            print(f'occur Exception error {e=}')
             return None
 
-    # 시장가 매수
-    def order_buy_market(self, ticker: str, buy_amount: float):
-        """
-        : ticker : 코인 이름
-        : buy_amount : 매수할 금액
+    def order_buy_market(self, ticker: CoinType, buy_amount: float):
+        """시장가 매수
+        :param ticker : (CoinType) 단일 티커
+        :param buy_amount : 매수할 금액
         """
         if buy_amount < 5000:
-            print('주문 최소 금액보다 작습니다(5000원)')
+            print(f'less than minimum order amount(5000won) {buy_amount=}')
             return 0
         try:
             res = self.upbit.buy_market_order(ticker, buy_amount)

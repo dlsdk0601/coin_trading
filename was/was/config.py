@@ -7,7 +7,7 @@ BINANCE_API_SECRET_KEY = ''
 
 UPBIT_ACCESS_KEY = ''
 UPBIT_SECRET_KEY = ''
-UPBIT_ACCOUNT_ADDRESS = ''
-UPBIT_DESNATION = ''
+
+IS_LOOP = False
 
 configure(__name__)
