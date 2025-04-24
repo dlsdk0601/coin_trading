@@ -1,11 +1,10 @@
 import pyupbit
-from ccxt.static_dependencies.lark.parsers.cyk import match
 from pyupbit import Upbit
 
 from was import config
 from was.ex.calculate_trade_unit import calculate_trade_unit
 from was.ex.logger import log
-from was.model.coin import CoinType
+from was.model.coin import MarketType
 
 
 class UpbitData:
@@ -17,7 +16,7 @@ class UpbitData:
         return self.upbit.get_balance('KRW')
 
     @staticmethod
-    def get_current_price(ticker: CoinType | list[CoinType]) -> float:
+    def get_current_price(ticker: MarketType | list[MarketType]) -> float:
         """현재가격 조회
         :param ticker: (CoinType | list[CoinType]) 단일 티커 또는 티커 리스트
         :return float : 현재 가격 (원화)
@@ -29,18 +28,17 @@ class UpbitData:
             case list():
                 tickers = list(map(lambda coin: coin.label, ticker))
                 return pyupbit.get_current_price(tickers)
-            case  _:
+            case _:
                 return pyupbit.get_current_price(ticker.label)
 
-
-    def get_balance_coin(self, ticker: CoinType) -> float | None:
+    def get_balance_coin(self, ticker: MarketType) -> float | None:
         """현재 본인이 보유하고 있는 해당 코인 수량 조회
         :param ticker: (CoinType) 단일 티커
         :return float : (float) 소유량
         """
         return self.upbit.get_balance(ticker.label)
 
-    def get_buy_average(self, ticker: CoinType) -> float | None:
+    def get_buy_average(self, ticker: MarketType) -> float | None:
         """본인이 매수한 특정 코인의 평균 매수가 조회
         :param ticker: (CoinType) 단일 티커
         :return
@@ -48,7 +46,7 @@ class UpbitData:
         """
         return self.upbit.get_avg_buy_price(ticker.label)
 
-    def get_order_info(self, ticker: CoinType):
+    def get_order_info(self, ticker: MarketType):
         """미체결 주문 정보 조회
         :param ticker: (CoinType) 단일 티커
         :return float: (float | None) 현재 가격 (원화)
@@ -63,7 +61,7 @@ class UpbitData:
             print(f'occur Exception error {e=}')
             return None
 
-    def order_buy_market(self, ticker: CoinType, buy_amount: float):
+    def order_buy_market(self, ticker: MarketType, buy_amount: float):
         """시장가 매수
         - 시장가 매수는 최우선 매도 호가에 즉시 매수
         - 매수 금액은 수수료를 제외한 금액 (수수료 0.05%)
