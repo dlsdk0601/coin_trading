@@ -1,6 +1,6 @@
 from was.ex.logger import log
 from was.model.coin import CoinType
-from was.repository.upbit import UpbitData
+from was.repository.upbit_sample import UpbitData
 
 
 def get_margin(current_price, buy_avg_price, current_balance):
