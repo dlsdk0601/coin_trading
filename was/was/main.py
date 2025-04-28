@@ -1,3 +1,4 @@
+from was.application import app
 from was.ex.logger import log
 from was.model.coin import MarketType
 from was.repository.upbit_sample import UpbitData
@@ -9,7 +10,7 @@ def get_margin(current_price, buy_avg_price, current_balance):
     return margin, margin_rate
 
 
-def app():
+def _app():
     upbit = UpbitData()
     try:
         # BUY / SELL / HOLD 결정
@@ -44,3 +45,6 @@ def app():
         log.log('WA', '보유 코인 수 확인', Div_zero)
     except Exception as e:
         log.log('DG', 'Running Error', e)
+
+if __name__ == '__main__':
+    app()
