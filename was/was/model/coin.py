@@ -19,3 +19,15 @@ class MarketType(StringEnum):
                 return 'KRW-GAS'
             case _:
                 return ''
+
+    @property
+    def currency(self) -> str:
+        match self:
+            case MarketType.KRW_BTC:
+                return 'BTC'
+            case MarketType.KRW_TRX:
+                return 'TRX'
+            case MarketType.KRW_GAS:
+                return 'GAS'
+            case _:
+                return ''
