@@ -24,6 +24,7 @@ setup(
         'ccxt==4.4.77',
         'openpyxl==3.1.5',
         'pyupbit==0.2.34',
-        'PyJWT==2.10.1'
+        'PyJWT==2.10.1',
+        'pandas==2.2.3'
     ],
 )
