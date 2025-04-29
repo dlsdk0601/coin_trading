@@ -1,5 +1,6 @@
 import hashlib
 import uuid
+from dataclasses import dataclass
 from enum import auto
 from typing import Any, Tuple
 from urllib.parse import unquote, urlencode
@@ -13,8 +14,13 @@ from was.ex.enum_ex import StringEnum
 from was.ex.pydantic_ex import BaseModel
 from was.model.coin import MarketType
 
+@dataclass
+class Err:
+    name: str
+    message: str
 
-class GetAccountResItem(BaseModel):
+@dataclass
+class GetAccountResItem:
     currency: str  # 화폐를 의미하는 영문 대문자 코드
     balance: str  # 주문 가능 금액/수량
     locked: str  # 주문 중 묶여 있는 금액/수량
@@ -22,38 +28,39 @@ class GetAccountResItem(BaseModel):
     avg_buy_price_modified: bool  # 매수평균가 수정 여부
     unit_currency: str  # 평단가 기준 화폐
 
-
-class GetAccountRes(BaseModel):
+@dataclass
+class GetAccountRes:
     accounts: list[GetAccountResItem]
 
 
-def get_account() -> GetAccountRes | None:
+def get_account() -> GetAccountRes | Err:
     """전체 계좌 조회
     :return: GetAccountRes | None (코인별 정보 리스트)
     """
-    res = _upbit_request(path='/accounts', params={}, method=RequestMethod.GET)
+    res_or_err = _upbit_request(path='/accounts', params={}, method=RequestMethod.GET)
 
-    if res is None:
-        return None
+    if isinstance(res_or_err, Err):
+        return res_or_err
 
-    return GetAccountRes(accounts=res)
+    accounts = [GetAccountResItem(**item) for item in res_or_err]
+    return GetAccountRes(accounts=accounts)
 
-
-class GetOrderChanceReq(BaseModel):
+@dataclass
+class GetOrderChanceReq:
     market: MarketType
 
-
-class GetOrderChanceResMarketBid(BaseModel):
+@dataclass
+class GetOrderChanceResMarketBid:
     currency: str  # 화폐를 의미하는 영문 대문자 코드
     min_total: float  # 최소 매도/매수 금액
 
-
-class GetOrderChanceResMarketAsk(BaseModel):
+@dataclass
+class GetOrderChanceResMarketAsk:
     currency: str  # 화폐를 의미하는 영문 대문자 코드
     min_total: float  # 최소 매도/매수 금액
 
-
-class GetOrderChanceResMarket(BaseModel):
+@dataclass
+class GetOrderChanceResMarket:
     id: str  # 마켓의 유일 키
     name: str  # 마켓 이름
     order_types: list[str]  # 지원 주문 방식 (만료)
@@ -65,8 +72,8 @@ class GetOrderChanceResMarket(BaseModel):
     bid: GetOrderChanceResMarketBid  # 매수 시 제약 사항
     ask: GetOrderChanceResMarketAsk  # 매도 시 제약 사항
 
-
-class GetOrderChanceResBidAccount(BaseModel):
+@dataclass
+class GetOrderChanceResBidAccount:
     currency: str  # 화폐를 의미 하는 영문 대문자 코드
     balance: str  # 주문 가능 금액/수량
     locked: str  # 주문 중 묶여 있는 금액/수량
@@ -74,8 +81,8 @@ class GetOrderChanceResBidAccount(BaseModel):
     avg_buy_price_modified: bool  # 매수 평균가 수정 여부
     unit_currency: str  # 평단가 기준 화폐
 
-
-class GetOrderChanceResAskAccount(BaseModel):
+@dataclass
+class GetOrderChanceResAskAccount:
     currency: str  # 화폐를 의미 하는 영문 대문자 코드
     balance: str  # 주문 가능 금액/수량
     locked: str  # 주문 중 묶여 있는 금액/수량
@@ -83,8 +90,8 @@ class GetOrderChanceResAskAccount(BaseModel):
     avg_buy_price_modified: bool  # 매수 평균가 수정 여부
     unit_currency: str  # 평단가 기준 화폐
 
-
-class GetOrderChanceRes(BaseModel):
+@dataclass
+class GetOrderChanceRes:
     bid_fee: str  # 매수 수수료 비율
     ask_fee: str  # 매도 수수료 비율
     maker_bid_fee: str
@@ -94,26 +101,26 @@ class GetOrderChanceRes(BaseModel):
     ask_account: GetOrderChanceResAskAccount  # 매도 시 사용하는 화폐의 계좌 상태
 
 
-def get_orders_chance(req: GetOrderChanceReq) -> GetOrderChanceRes | None:
+def get_orders_chance(req: GetOrderChanceReq) -> GetOrderChanceRes | Err:
     """주문 가능 정보
     :return: GetOrderChanceRes | None (코인별 정보 리스트)
     """
     params = {
         'market': req.market.label,
     }
-    res = _upbit_request(path='/orders/chance', params=params, method=RequestMethod.GET)
+    res_or_err = _upbit_request(path='/orders/chance', params=params, method=RequestMethod.GET)
 
-    if res is None:
-        return None
+    if isinstance(res_or_err, Err):
+        return res_or_err
 
-    return GetOrderChanceRes(**res)
+    return GetOrderChanceRes(**res_or_err)
 
-
+@dataclass
 class OrderBuyMarketReq(BaseModel):
     market: MarketType  # 마켓 ID
     price: float  # 주문 가격 (시장가)
 
-
+@dataclass
 class OrderBuyMarketRes(BaseModel):
     # 주문의 고유 아이디
     uuid: str
@@ -155,7 +162,7 @@ class OrderBuyMarketRes(BaseModel):
     identifier: str
 
 
-def order_buy_market(req: OrderBuyMarketReq) -> OrderBuyMarketRes | None:
+def order_buy_market(req: OrderBuyMarketReq) -> OrderBuyMarketRes | Err:
     params = {
         'market': req.market.label,
         'side': 'bid',
@@ -163,12 +170,12 @@ def order_buy_market(req: OrderBuyMarketReq) -> OrderBuyMarketRes | None:
         'ord_type': 'price',
     }
 
-    res = _upbit_request(path='/orders', params=params, method=RequestMethod.POST)
+    res_or_error = _upbit_request(path='/orders', params=params, method=RequestMethod.POST)
 
-    if res is None:
-        return None
+    if isinstance(res_or_error, Err):
+        return res_or_error
 
-    return OrderBuyMarketRes(**res)
+    return OrderBuyMarketRes(**res_or_error)
 
 
 class RequestMethod(StringEnum):
@@ -191,16 +198,12 @@ def _upbit_request(path: str, params: dict[str, Any], method: RequestMethod):
         case RequestMethod.DELETE:
             res = requests.delete(server_url, headers=headers, params=params)
 
-    # TODO :: 일단 에러 raise 하지 말고 None 처리, 후에 시스템 실행 시킬때 상황 보고 수정
     if res is None:
-        print(f'res is nil')
-        return None
+        raise ValueError(f'res is None {res=}')
 
     if res.status_code != 200:
-        status_code = res.status_code
-        error = res.json()
-        print(f'{status_code=}, {error=}')
-        return None
+        err = res.json()
+        return Err(name=err.name, message=err.message)
 
     return res.json()
 
