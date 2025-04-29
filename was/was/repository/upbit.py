@@ -11,13 +11,14 @@ from requests import Response
 
 from was import config
 from was.ex.enum_ex import StringEnum
-from was.ex.pydantic_ex import BaseModel
 from was.model.coin import MarketType
+
 
 @dataclass
 class Err:
     name: str
     message: str
+
 
 @dataclass
 class GetAccountResItem:
@@ -27,6 +28,7 @@ class GetAccountResItem:
     avg_buy_price: str  # 매수평균가
     avg_buy_price_modified: bool  # 매수평균가 수정 여부
     unit_currency: str  # 평단가 기준 화폐
+
 
 @dataclass
 class GetAccountRes:
@@ -45,19 +47,23 @@ def get_account() -> GetAccountRes | Err:
     accounts = [GetAccountResItem(**item) for item in res_or_err]
     return GetAccountRes(accounts=accounts)
 
+
 @dataclass
 class GetOrderChanceReq:
     market: MarketType
+
 
 @dataclass
 class GetOrderChanceResMarketBid:
     currency: str  # 화폐를 의미하는 영문 대문자 코드
     min_total: float  # 최소 매도/매수 금액
 
+
 @dataclass
 class GetOrderChanceResMarketAsk:
     currency: str  # 화폐를 의미하는 영문 대문자 코드
     min_total: float  # 최소 매도/매수 금액
+
 
 @dataclass
 class GetOrderChanceResMarket:
@@ -72,6 +78,7 @@ class GetOrderChanceResMarket:
     bid: GetOrderChanceResMarketBid  # 매수 시 제약 사항
     ask: GetOrderChanceResMarketAsk  # 매도 시 제약 사항
 
+
 @dataclass
 class GetOrderChanceResBidAccount:
     currency: str  # 화폐를 의미 하는 영문 대문자 코드
@@ -81,6 +88,7 @@ class GetOrderChanceResBidAccount:
     avg_buy_price_modified: bool  # 매수 평균가 수정 여부
     unit_currency: str  # 평단가 기준 화폐
 
+
 @dataclass
 class GetOrderChanceResAskAccount:
     currency: str  # 화폐를 의미 하는 영문 대문자 코드
@@ -89,6 +97,7 @@ class GetOrderChanceResAskAccount:
     avg_buy_price: str  # 매수 평균가
     avg_buy_price_modified: bool  # 매수 평균가 수정 여부
     unit_currency: str  # 평단가 기준 화폐
+
 
 @dataclass
 class GetOrderChanceRes:
@@ -115,13 +124,15 @@ def get_orders_chance(req: GetOrderChanceReq) -> GetOrderChanceRes | Err:
 
     return GetOrderChanceRes(**res_or_err)
 
+
 @dataclass
-class OrderBuyMarketReq(BaseModel):
+class OrderBuyMarketReq:
     market: MarketType  # 마켓 ID
     price: float  # 주문 가격 (시장가)
 
+
 @dataclass
-class OrderBuyMarketRes(BaseModel):
+class OrderBuyMarketRes:
     # 주문의 고유 아이디
     uuid: str
     # 주문 종류 (bid: 매수, ask: 매도)
@@ -176,6 +187,104 @@ def order_buy_market(req: OrderBuyMarketReq) -> OrderBuyMarketRes | Err:
         return res_or_error
 
     return OrderBuyMarketRes(**res_or_error)
+
+
+@dataclass
+class GetCandleDayReq:
+    market: MarketType
+    to: str
+    count: int
+    converting_price_unit: str = 'KRW'
+
+
+@dataclass
+class GetCandleDayResItem:
+    market: str  # 종목 코드
+    candle_date_time_utc: str  # 캔들 기준 시각(UTC 기준) 포맷: yyyy-MM-ddTHH:mm:ss
+    candle_date_time_kst: str  # 캔들 기준 시각(KST 기준) 포맷: yyyy-MM-ddTHH:mm:ss
+    opening_price: float  # 시가
+    high_price: float  # 고가
+    low_price: float  # 저가
+    trade_price: float  # 종가
+    timestamp: int  # 마지막 틱이 저장된 시각
+    candle_acc_trade_price: float  # 누적 거래 금액
+    candle_acc_trade_volume: float  # 누적 거래량
+    prev_closing_price: float  # 전일 종가(UTC 0시 기준)
+    change_price: float  # 전일 종가 대비 변화 금액
+    change_rate: float  # 전일 종가 대비 변화량
+    converted_trade_price: float  # 종가 환산 화폐 단위로 환산된 가격(요청에 convertingPriceUnit 파라미터 없을 시 해당 필드 포함되지 않음.)
+
+
+@dataclass
+class GetCandleDayRes:
+    candles: list[GetCandleDayResItem]
+
+
+def get_candle_day(req: GetCandleDayReq) -> GetCandleDayRes | Err:
+    params = {
+        'market': req.market.label,
+        'count': req.count,
+        'to': req.to,
+        'converting_price_unit': req.converting_price_unit,
+    }
+    res_or_error = _upbit_request(path='/candles/days', params=params, method=RequestMethod.GET)
+    if isinstance(res_or_error, Err):
+        return res_or_error
+
+    candles = [GetCandleDayResItem(**item) for item in res_or_error]
+    return GetCandleDayRes(candles=candles)
+
+
+@dataclass
+class GetTickerReq:
+    markets: list[MarketType]
+
+
+@dataclass
+class GetTickerResItem:
+    market: str  # 종목 구분 코드
+    trade_date: str  # 최근 거래 일자(UTC) 포맷: yyyyMMdd
+    trade_time: str  # 최근 거래 시각(UTC) 포맷: HHmmss
+    trade_date_kst: str  # 최근 거래 일자(KST) 포맷: yyyyMMdd
+    trade_time_kst: str  # 최근 거래 시각(KST) 포맷: HHmmss
+    trade_timestamp: int  # 최근 거래 일시(UTC) 포맷: Unix Timestamp
+    opening_price: float  # 시가
+    high_price: float  # 고가
+    low_price: float  # 저가
+    trade_price: float  # 종가(현재가)
+    prev_closing_price: float  # 전일 종가(UTC 0시 기준)
+    change: str  # EVEN : 보합, RISE : 상승, FALL : 하락
+    change_price: float  # 변화액의 절대값
+    change_rate: float  # 변화율의 절대값
+    signed_change_price: float  # 부호가 있는 변화액
+    signed_change_rate: float  # 부호가 있는 변화율
+    trade_volume: float  # 가장 최근 거래량
+    acc_trade_price: float  # 누적 거래대금(UTC 0시 기준)
+    acc_trade_price_24h: float  # 24시간 누적 거래대금
+    acc_trade_volume: float  # 누적 거래량(UTC 0시 기준)
+    acc_trade_volume_24h: float  # 24시간 누적 거래량
+    highest_52_week_price: float  # 52주 신고가
+    highest_52_week_date: str  # 52주 신고가 달성일 포맷: yyyy-MM-dd
+    lowest_52_week_price: float  # 52주 신저가
+    lowest_52_week_date: str  # 52주 신저가 달성일 포맷: yyyy-MM-dd
+    timestamp: int  # 타임스탬프
+
+
+@dataclass
+class GetTickerRes:
+    tickers: list[GetTickerResItem]
+
+
+def get_ticker(req: GetTickerReq) -> GetTickerRes | Err:
+    params = {
+        'market': ','.join([market.label for market in req.markets]),
+    }
+    res_or_error = _upbit_request(path='/ticker', params=params, method=RequestMethod.GET)
+    if isinstance(res_or_error, Err):
+        return res_or_error
+
+    tickers = [GetTickerResItem(**item) for item in res_or_error]
+    return GetTickerRes(tickers=tickers)
 
 
 class RequestMethod(StringEnum):
