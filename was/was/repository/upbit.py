@@ -11,6 +11,7 @@ from requests import Response
 
 from was import config
 from was.ex.enum_ex import StringEnum
+from was.ex.logger import log, LogLevel
 from was.model.coin import MarketType
 
 
@@ -132,7 +133,7 @@ class OrderBuyMarketReq:
 
 
 @dataclass
-class OrderBuyMarketRes:
+class OrderMarketRes:
     # 주문의 고유 아이디
     uuid: str
     # 주문 종류 (bid: 매수, ask: 매도)
@@ -173,7 +174,10 @@ class OrderBuyMarketRes:
     identifier: str
 
 
-def order_buy_market(req: OrderBuyMarketReq) -> OrderBuyMarketRes | Err:
+def order_buy_market(req: OrderBuyMarketReq) -> OrderMarketRes | Err:
+    """시장가 매수
+    :return: OrderMarketRes | ERR
+    """
     params = {
         'market': req.market.label,
         'side': 'bid',
@@ -186,7 +190,30 @@ def order_buy_market(req: OrderBuyMarketReq) -> OrderBuyMarketRes | Err:
     if isinstance(res_or_error, Err):
         return res_or_error
 
-    return OrderBuyMarketRes(**res_or_error)
+    return OrderMarketRes(**res_or_error)
+
+@dataclass
+class OrderSellMarketReq:
+    market: MarketType  # 마켓 ID
+    volume: float  # 주문 가격 (시장가)
+
+def order_sell_market(req: OrderSellMarketReq) -> OrderMarketRes | Err:
+    """시장가 매도
+    :return: OrderMarketRes | ERR
+    """
+    params = {
+        'market': req.market.label,
+        'side': 'ask',
+        'volume': str(req.volume),
+        'ord_type': 'market',
+    }
+
+    res_or_error = _upbit_request(path='/orders', params=params, method=RequestMethod.POST)
+
+    if isinstance(res_or_error, Err):
+        return res_or_error
+
+    return OrderMarketRes(**res_or_error)
 
 
 @dataclass
@@ -221,6 +248,9 @@ class GetCandleDayRes:
 
 
 def get_candle_day(req: GetCandleDayReq) -> GetCandleDayRes | Err:
+    """시세 캔들 조회 (일별)
+    :return: GetCandleDayRes | ERR
+    """
     params = {
         'market': req.market.label,
         'count': req.count,
@@ -276,6 +306,9 @@ class GetTickerRes:
 
 
 def get_ticker(req: GetTickerReq) -> GetTickerRes | Err:
+    """종목 현재가 정보
+    :return: GetTickerRes | ERR
+    """
     params = {
         'market': ','.join([market.label for market in req.markets]),
     }
@@ -294,7 +327,7 @@ class RequestMethod(StringEnum):
 
 
 def _upbit_request(path: str, params: dict[str, Any], method: RequestMethod):
-    print(f'request : {method=}, {path=}, {params=}')
+    log.log(level=LogLevel.INFO, text=f'request : {method=}, {path=}, {params=}')
 
     server_url, headers = _get_api_element(path=path, params=params)
 
