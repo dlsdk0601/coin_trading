@@ -3,10 +3,10 @@ import logging
 import os
 from enum import auto
 from logging import handlers
-from unittest import case
 
 from was.ex.enum_ex import StringEnum
 from was.service.slack import send_message
+
 
 class LogLevel(StringEnum):
     DEBUG = auto()
@@ -62,7 +62,6 @@ class Log:
 
     def error(self, message: str):
         self.logger.error(message)
-
 
     def log_call(self, func):
         def wrapper(*args, **kwargs):
