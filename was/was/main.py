@@ -1,4 +1,8 @@
+from datetime import timedelta
+
+from was import config
 from was.application import app
+from was.ex.date_ex import now
 from was.ex.logger import log
 from was.model.coin import MarketType
 from was.repository.upbit_sample import UpbitData
@@ -47,4 +51,9 @@ def _app():
         log.log('DG', 'Running Error', e)
 
 if __name__ == '__main__':
-    app()
+    # TODO :: while True 는 CPU 를 계속 잡아 먹는다.
+    last_run_time = now()
+    while True:
+        if last_run_time + timedelta(seconds=config.BOLLINGER_BAND_PERIOD) < now():
+            app()
+            last_run_time = now()
