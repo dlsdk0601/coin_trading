@@ -194,7 +194,7 @@ class UpbitData:
         current_price = self.get_current_price(ticker='KRW-BTC')
 
         ### 상단 / 하단 / 현재가 출력
-        log.log('DG', 'response', f'HIGH : {band_high} / LOW : {band_low} / PRICE : {current_price}')
+        # log.log('DG', 'response', f'HIGH : {band_high} / LOW : {band_low} / PRICE : {current_price}')
 
         '''
             현재 가겨이 상단 밴드보다 큰 경우 'BUY 신호
@@ -210,7 +210,7 @@ class UpbitData:
             print('BUY SIGNAL')
             ret = 'BUY'
 
-        log.log('DG', 'response', 'Signal : ' + ret)
+        # log.log('DG', 'response', 'Signal : ' + ret)
         return ret
 
     def trading(self, ticker: str):
@@ -226,24 +226,24 @@ class UpbitData:
         # 매수 금액
         buy_unit = calculate_trade_unit(balance_cash)
 
-        log.log('TR', 'response', f'SIGNAL : {signal} / BALANCE COIN : {balance_coin} / BALANCE CASH : {balance_cash}')
+        # log.log('TR', 'response', f'SIGNAL : {signal} / BALANCE COIN : {balance_coin} / BALANCE CASH : {balance_cash}')
 
         if balance_cash < 10_000:
-            log.log('TR', 'response', '잔액 부족!!!!!!!')
+            # log.log('TR', 'response', '잔액 부족!!!!!!!')
             return None
 
         ret = None
         if signal == 'BUY' and balance_cash > buy_unit:
             ret = self.order_buy_market(ticker=ticker, buy_amount=10_000)
-            log.log('TR', 'response', f'Buy Order : {ret}')
+            # log.log('TR', 'response', f'Buy Order : {ret}')
             return ret
 
         if signal == 'SELL' and balance_coin > 0:
             ret = self.order_sell_market(ticker=ticker, volume=balance_coin)
-            log.log('TR', 'response', f'Sell Order : {ret}')
+            # log.log('TR', 'response', f'Sell Order : {ret}')
             return ret
 
-        log.log('DG', 'response', 'Hold Position')
+        # log.log('DG', 'response', 'Hold Position')
         return ret
 
     def run(self):
