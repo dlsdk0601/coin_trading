@@ -32,11 +32,11 @@ class GetAccountResItem:
 
 
 @dataclass
-class GetAccountRes:
-    accounts: list[GetAccountResItem]
+class GetDepositRes:
+    deposits: list[GetAccountResItem]
 
 
-def get_account() -> GetAccountRes | Err:
+def get_deposit() -> GetDepositRes | Err:
     """전체 계좌 조회
     :return: GetAccountRes | None (코인별 정보 리스트)
     """
@@ -45,8 +45,8 @@ def get_account() -> GetAccountRes | Err:
     if isinstance(res_or_err, Err):
         return res_or_err
 
-    accounts = [GetAccountResItem(**item) for item in res_or_err]
-    return GetAccountRes(accounts=accounts)
+    deposits = [GetAccountResItem(**item) for item in res_or_err]
+    return GetDepositRes(deposits=deposits)
 
 
 @dataclass

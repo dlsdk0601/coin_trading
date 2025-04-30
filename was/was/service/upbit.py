@@ -3,7 +3,7 @@ from enum import auto
 from typing import Tuple
 
 import pandas
-from pandas import Series
+from pandas import Series, DataFrame
 
 from was.ex.calculate_trade_unit import calculate_trade_unit
 from was.ex.date_ex import now
@@ -15,14 +15,18 @@ from was.repository.upbit import GetCandleDayReq, GetCandleDayResItem, GetTicker
     OrderBuyMarketReq, order_sell_market, OrderSellMarketReq, Err
 
 
-def upbit_current(req: MarketType):
-    res = upbit.get_account()
+def upbit_current_deposit(req: MarketType):
+    """
+    :param req: MarketType 내가 소유한 코인, 원화
+    :return: 조회 요청한 코인 이나 원화의 정보
+    """
+    res = upbit.get_deposit()
     krw_account: upbit.GetAccountResItem | None = None
     match res:
         case upbit.Err(name=name, message=message):
             log.log(level=LogLevel.ERROR, text=f'UPBIT | DEPOSIT SELECT | ERROR | market={req.label} {name=} {message=}')
             return None
-        case upbit.GetAccountRes(accounts=accounts):
+        case upbit.GetDepositRes(deposits=accounts):
             acc: upbit.GetAccountResItem
             for acc in accounts:
                 if acc.currency == req.currency:
@@ -32,6 +36,10 @@ def upbit_current(req: MarketType):
 
 
 def upbit_current_ticker(req: MarketType):
+    """
+    :param req: MarketType 현재 가격 정보를 원하는 코인
+    :return: 조회 요청한 코인의 현재 정보
+    """
     res = upbit.get_ticker(GetTickerReq(markets=[req]))
 
     ticker: upbit.GetTickerResItem | None = None
@@ -50,7 +58,11 @@ def upbit_current_ticker(req: MarketType):
     return ticker
 
 
-def get_ohlcv(market: MarketType):
+def get_ohlcv(market: MarketType) -> DataFrame | None:
+    """
+    :param market: MarketType 조회를 원하는 코인
+    :return: pandas 로 감싼 갠들 정보 DataFrame
+    """
     res = upbit.get_candle_day(GetCandleDayReq(market=market, to=now().isoformat(), count=200))
 
     candles: list[GetCandleDayResItem] = []
@@ -77,6 +89,12 @@ def get_ohlcv(market: MarketType):
 
 
 def get_bollinger_bands(prices: Series, window: int = 20, multiplier: int = 2) -> Tuple[Series, Series]:
+    """볼린저 밴드 계산
+    :param prices: Series pandas 로 얻은 조회된 코인의 종가
+    :param window: int 며칠 씩 데이터를 기준 으로 계산 할 지를 정하는 기간 (default 20일)
+    :param multiplier: int 표준편차를 몇 배 할 건지를 정하는 값
+    :return: pandas 로 감싼 upper_band, lower_band
+    """
     # 20 일 동안 이동 평균선 계산 (middle Band)
     sma = prices.rolling(window=window).mean()
 
@@ -99,6 +117,11 @@ class BollingerBandsSignal(StringEnum):
 
 
 def bollinger_signal(market: MarketType, prices: Series) -> BollingerBandsSignal:
+    """볼린저 밴드 계산
+    :param market: MarketType 볼린저 밴드를 기반 으로 조회할 코인
+    :param prices: Series pandas 로 얻은 조회된 코인의 종가
+    :return: 매수, 매도, 홀드 결정 값
+    """
     upper_band, lower_band = get_bollinger_bands(prices=prices)
 
     band_high = upper_band.iloc[-1]
@@ -122,9 +145,15 @@ def bollinger_signal(market: MarketType, prices: Series) -> BollingerBandsSignal
 
 
 def bollinger_trading(market: MarketType):
+    """볼린저 밴드 바탕 으로 돌아갈 비즈니스 로직
+    :param market: MarketType 볼린저 밴드를 기반 으로 조회할 코인
+    :return: OrderMarketRes | None 매수, 매도 후 마켓 정보 or None
+    """
     log.log(level=LogLevel.INFO, text=f'BOLLINGER BAND START')
     # 분석할 데이터
     price_data = get_ohlcv(market=market)
+    if price_data is None:
+        return None
     prices = price_data['close']
 
     # 판단
@@ -132,12 +161,12 @@ def bollinger_trading(market: MarketType):
     log.log(level=LogLevel.INFO, text=f'UPBIT | BOLLINGER BAND | SIGNAL {signal=}')
 
     # 현재 잔고
-    account_krw = upbit_current(req=MarketType.KRW)
+    account_krw = upbit_current_deposit(req=MarketType.KRW)
     balance_cash = float(account_krw.balance)
     log.log(level=LogLevel.INFO, text=f'UPBIT | BOLLINGER BAND | CASH ACCOUNT {balance_cash=}')
 
     # 잔고 코인
-    account_coin = upbit_current(req=market)
+    account_coin = upbit_current_deposit(req=market)
     balance_coin = float(account_coin.balance)
     log.log(level=LogLevel.INFO, text=f'UPBIT | BOLLINGER BAND | COIN market={market.label} {balance_coin=}')
 
