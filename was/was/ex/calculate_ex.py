@@ -25,3 +25,9 @@ def calculate_trade_unit(cash: float) -> float:
         return 100_000
 
     return 0
+
+
+def get_margin(current_price: float, buy_avg_price: float, current_balance: float) -> Tuple[float, float]:
+    margin_rate = float((current_price - buy_avg_price) / buy_avg_price) * 100.0
+    margin = current_balance * buy_avg_price * (margin_rate / 100.0)
+    return margin, margin_rate

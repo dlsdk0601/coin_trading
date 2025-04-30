@@ -1,9 +1,9 @@
+# type: ignore
 import pyupbit
 from pyupbit import Upbit
 
 from was import config
-from was.ex.calculate_trade_unit import calculate_trade_unit
-from was.ex.logger import log
+from was.ex.calculate_ex import calculate_trade_unit
 from was.model.coin import MarketType
 
 

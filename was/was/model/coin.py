@@ -3,6 +3,7 @@ from enum import auto
 from was.ex.enum_ex import StringEnum
 
 
+# TODO :: 당장은 비트코인만 타겟으로 하지만, 어드민에서 어떤 코인으로 할지 정할 수 있게 테이블로 수정
 class MarketType(StringEnum):
     KRW = auto()
     KRW_BTC = auto()

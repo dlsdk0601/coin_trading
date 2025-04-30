@@ -5,7 +5,7 @@ from typing import Tuple
 import pandas
 from pandas import Series, DataFrame
 
-from was.ex.calculate_trade_unit import calculate_trade_unit
+from was.ex.calculate_ex import calculate_trade_unit
 from was.ex.date_ex import now
 from was.ex.enum_ex import StringEnum
 from was.ex.logger import log, LogLevel
@@ -24,7 +24,8 @@ def upbit_current_deposit(req: MarketType):
     krw_account: upbit.GetAccountResItem | None = None
     match res:
         case upbit.Err(name=name, message=message):
-            log.log(level=LogLevel.ERROR, text=f'UPBIT | DEPOSIT SELECT | ERROR | market={req.label} {name=} {message=}')
+            log.log(level=LogLevel.ERROR,
+                    text=f'UPBIT | DEPOSIT SELECT | ERROR | market={req.label} {name=} {message=}')
             return None
         case upbit.GetDepositRes(deposits=accounts):
             acc: upbit.GetAccountResItem
@@ -68,7 +69,8 @@ def get_ohlcv(market: MarketType) -> DataFrame | None:
     candles: list[GetCandleDayResItem] = []
     match res:
         case upbit.Err(name=name, message=message):
-            log.log(level=LogLevel.ERROR, text=f'UPBIT | CANDLE SELECT | ERROR | market={market.label} {name=} {message=}')
+            log.log(level=LogLevel.ERROR,
+                    text=f'UPBIT | CANDLE SELECT | ERROR | market={market.label} {name=} {message=}')
             return None
         case upbit.GetCandleDayRes(candles=candles):
             candles = candles
@@ -184,18 +186,21 @@ def bollinger_trading(market: MarketType):
         case BollingerBandsSignal.BUY:
             if balance_cash > buy_unit:
                 res = order_buy_market(OrderBuyMarketReq(market=market, price=balance_cash))
-                log.log(level=LogLevel.INFO, text=f'UPBIT | BOLLINGER BAND | BUY SUCCESS {market.label} {balance_cash}', slack_send=True)
+                log.log(level=LogLevel.INFO, text=f'UPBIT | BOLLINGER BAND | BUY SUCCESS {market.label} {balance_cash}',
+                        slack_send=True)
         case BollingerBandsSignal.SELL:
             if balance_coin > 0:
                 res = order_sell_market(OrderSellMarketReq(market=market, volume=balance_coin))
-                log.log(level=LogLevel.INFO, text=f'UPBIT | BOLLINGER BAND | SELL SUCCESS {market.label} {balance_coin}', slack_send=True)
+                log.log(level=LogLevel.INFO,
+                        text=f'UPBIT | BOLLINGER BAND | SELL SUCCESS {market.label} {balance_coin}', slack_send=True)
         case BollingerBandsSignal.HOLD:
             # HOLD 는 아무것도 하지 않는다.
             log.log(level=LogLevel.INFO, text=f'UPBIT | BOLLINGER BAND | HOLD {market.label}')
 
-
     if isinstance(res, Err):
-        log.log('TR', f'UPBIT | BOLLINGER BAND | BUY OR SELL | ERROR {signal=} message={res.message} name={res.name}', slack_send=True)
+        log.log(level=LogLevel.ERROR,
+                text=f'UPBIT | BOLLINGER BAND | BUY OR SELL | ERROR {signal=} message={res.message} name={res.name}',
+                slack_send=True)
         return None
 
     return res
