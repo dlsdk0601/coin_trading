@@ -8,9 +8,11 @@ from pandas import Series
 from was.ex.calculate_trade_unit import calculate_trade_unit
 from was.ex.date_ex import now
 from was.ex.enum_ex import StringEnum
+from was.ex.logger import log, LogLevel
 from was.model.coin import MarketType
 from was.repository import upbit
-from was.repository.upbit import GetCandleDayReq, GetCandleDayResItem, GetTickerReq
+from was.repository.upbit import GetCandleDayReq, GetCandleDayResItem, GetTickerReq, order_buy_market, \
+    OrderBuyMarketReq, order_sell_market, OrderSellMarketReq, Err
 
 
 def upbit_current(req: MarketType):
@@ -18,7 +20,7 @@ def upbit_current(req: MarketType):
     krw_account: upbit.GetAccountResItem | None = None
     match res:
         case upbit.Err(name=name, message=message):
-            print(f'error :: {name=} {message=}')
+            log.log(level=LogLevel.ERROR, text=f'UPBIT | DEPOSIT SELECT | ERROR | market={req.label} {name=} {message=}')
             return None
         case upbit.GetAccountRes(accounts=accounts):
             acc: upbit.GetAccountResItem
@@ -35,7 +37,9 @@ def upbit_current_ticker(req: MarketType):
     ticker: upbit.GetTickerResItem | None = None
     match res:
         case upbit.Err(name=name, message=message):
-            print(f'error :: {name=} {message=}')
+            log.log(level=LogLevel.ERROR,
+                    text=f'UPBIT | TICKER SELECT | ERROR | market={req.label} {name=} {message=}')
+            log.log(level=LogLevel.ERROR, text=f'error :: {name=} {message=}')
             return None
         case upbit.GetTickerRes(tickers=tickers):
             t: upbit.GetTickerResItem
@@ -47,13 +51,12 @@ def upbit_current_ticker(req: MarketType):
 
 
 def get_ohlcv(market: MarketType):
-    # TODO :: BTC 말고도 추가 할 수 있게 수정
     res = upbit.get_candle_day(GetCandleDayReq(market=market, to=now().isoformat(), count=200))
 
     candles: list[GetCandleDayResItem] = []
     match res:
         case upbit.Err(name=name, message=message):
-            print(f'error :: {name=} {message=}')
+            log.log(level=LogLevel.ERROR, text=f'UPBIT | CANDLE SELECT | ERROR | market={market.label} {name=} {message=}')
             return None
         case upbit.GetCandleDayRes(candles=candles):
             candles = candles
@@ -112,45 +115,58 @@ def bollinger_signal(market: MarketType, prices: Series) -> BollingerBandsSignal
 
     if current_price > band_high:
         res = BollingerBandsSignal.SELL
-        print(f'BOLLINGER BAND SIGNAL {res=}')
     if current_price < band_low:
         res = BollingerBandsSignal.BUY
-        print(f'BOLLINGER BAND SIGNAL {res=}')
 
     return BollingerBandsSignal.HOLD
 
 
 def bollinger_trading(market: MarketType):
+    log.log(level=LogLevel.INFO, text=f'BOLLINGER BAND START')
     # 분석할 데이터
     price_data = get_ohlcv(market=market)
     prices = price_data['close']
 
     # 판단
     signal = bollinger_signal(market=market, prices=prices)
+    log.log(level=LogLevel.INFO, text=f'UPBIT | BOLLINGER BAND | SIGNAL {signal=}')
 
     # 현재 잔고
-    account_market = upbit_current(req=market)
-    balance_cash = float(account_market.balance)
+    account_krw = upbit_current(req=MarketType.KRW)
+    balance_cash = float(account_krw.balance)
+    log.log(level=LogLevel.INFO, text=f'UPBIT | BOLLINGER BAND | CASH ACCOUNT {balance_cash=}')
 
     # 잔고 코인
-    balance_coin = upbit_current(req=market)
+    account_coin = upbit_current(req=market)
+    balance_coin = float(account_coin.balance)
+    log.log(level=LogLevel.INFO, text=f'UPBIT | BOLLINGER BAND | COIN market={market.label} {balance_coin=}')
 
-    # 혀재 잔액에 10% 만 배팅
-    buy_unit = calculate_trade_unit(float(balance_cash.balance))
+    # 현재 잔액에 10% 만 배팅
+    buy_unit = calculate_trade_unit(balance_cash)
+    log.log(level=LogLevel.INFO, text=f'UPBIT | BOLLINGER BAND | BETTING AMOUNT {buy_unit=}')
 
     if balance_cash < 10_000:
         # 잔액 부족
-        print(f'cash less')
+        log.log(level=LogLevel.WARNING, text=f'UPBIT | BOLLINGER BAND | LACK OF BALANCE {balance_cash=}')
         return None
 
     res = None
     match signal:
-        case BollingerBandsSignal.SELL:
-            # TODO :: 팔기
-            pass
         case BollingerBandsSignal.BUY:
-            # TODO :: 사기
-            pass
+            if balance_cash > buy_unit:
+                res = order_buy_market(OrderBuyMarketReq(market=market, price=balance_cash))
+                log.log(level=LogLevel.INFO, text=f'UPBIT | BOLLINGER BAND | BUY SUCCESS {market.label} {balance_cash}', slack_send=True)
+        case BollingerBandsSignal.SELL:
+            if balance_coin > 0:
+                res = order_sell_market(OrderSellMarketReq(market=market, volume=balance_coin))
+                log.log(level=LogLevel.INFO, text=f'UPBIT | BOLLINGER BAND | SELL SUCCESS {market.label} {balance_coin}', slack_send=True)
         case BollingerBandsSignal.HOLD:
             # HOLD 는 아무것도 하지 않는다.
-            pass
+            log.log(level=LogLevel.INFO, text=f'UPBIT | BOLLINGER BAND | HOLD {market.label}')
+
+
+    if isinstance(res, Err):
+        log.log('TR', f'UPBIT | BOLLINGER BAND | BUY OR SELL | ERROR {signal=} message={res.message} name={res.name}', slack_send=True)
+        return None
+
+    return res
