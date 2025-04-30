@@ -4,7 +4,7 @@ let
     url = "https://github.com/NixOS/nixpkgs/tarball/e2605d0744c2417b09f8bf850dfca42fcf537d34";
     sha256 = "1fsfkdjlqknzxi9jc38a0k0103rlxnjj59xg1s9a5bqb3scaxh9m";
   }) { };
-was = with pkgs; [ python312 ];
+was = with pkgs; [ python312 postgresql_17 wait4x ];
 
 packages = was;
 in
