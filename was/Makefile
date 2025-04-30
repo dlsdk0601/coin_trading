@@ -1,4 +1,5 @@
 _TMPDIR=$(TMPDIR)
+DOCKER_HOST ?= localhost
 
 open: setup
 	nix-shell --run 'TMPDIR=${_TMPDIR} SHELL=/bin/zsh pycharm .'
@@ -17,9 +18,21 @@ mypy-check:
 # daemon mypy 로 ex, bin 아래 소스들 체크
 	venv/bin/dmypy run -- was bin
 
-watch:
+watch: setup
 # watchmedo 는 최초 1회 실행이 없어서 그냥 먼저 실행한다.
 # 실행 과정에서 오류가 발생해도 그냥 무시한다. 어차피 계속 실행되어야 한다.
-	-$(MAKE) mypy-check
-	venv/bin/watchmedo shell-command --patterns="*.py;*.ini;*.tsx" --recursive --ignore-directories --drop --command='echo ""; make api url mypy-check ' .
+	-$(MAKE) -j mypy-check
+	venv/bin/watchmedo shell-command --patterns="*.py;*.ini;*.tsx" --recursive --ignore-directories --drop --command='echo ""; make -j mypy-check ' .
 
+dev:
+	docker compose up -d
+	nix-shell --run 'wait4x postgresql "postgres://postgres@${DOCKER_HOST}:30323/coin-trading?sslmode=disable"'
+
+dev-clean:
+	docker compose down -v --rmi local
+
+dev-reset: dev-clean dev
+	nix-shell --run 'time venv/bin/alembic upgrade head'
+
+dev-reinitialize: dev-reset
+	time venv/bin/python bin/faker_import.py

@@ -1,0 +1,16 @@
+services:
+  db:
+    image: postgres:latest
+    ports:
+      - '30323:5432'
+    environment:
+      - TZ=Asia/Seoul
+      - PGTZ=Asia/Seoul
+      - POSTGRES_HOST_AUTH_METHOD=trust
+      - POSTGRES_DB=coin-trading
+      - POSTGRES_INITDB_ARGS=--locale-provider=icu --icu-local=ko-KR
+    volumes:
+      - db-var_lib_postgresql_data:/var/lib/postgresql/data
+
+volumes:
+  db-var_lib_postgresql_data:
