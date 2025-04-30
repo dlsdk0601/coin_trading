@@ -10,6 +10,8 @@ BINANCE_API_SECRET_KEY = ''
 UPBIT_ACCESS_KEY = ''
 UPBIT_SECRET_KEY = ''
 
+BOLLINGER_BAND_PERIOD = 24 * 60 * 60
+
 IS_LOOP = False
 
 configure(__name__)
