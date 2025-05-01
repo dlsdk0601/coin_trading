@@ -1,4 +1,7 @@
 # 보유 현금에 따른 매수금액 지정
+from typing import Tuple
+
+
 def calculate_trade_unit(cash: float) -> float:
     if cash <= 300_000:
         return 6_000
