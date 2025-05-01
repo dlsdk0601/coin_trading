@@ -6,6 +6,7 @@ from sqlalchemy import text
 from werkzeug.middleware.proxy_fix import ProxyFix
 
 from was import config, model
+from was.blueprints import sf
 from was.ex.date_ex import now
 from was.ex.flask_ex import initialize, load_submodules, remote_addr
 from was.model import db
@@ -18,6 +19,7 @@ app.wsgi_app = ProxyFix(app.wsgi_app, x_for=1, x_proto=1, x_host=1, x_prefix=1) 
 # DB 기능 초기화
 model.db.init_app(app)
 load_submodules(model)
+app.register_blueprint(sf)
 
 if app.debug:
     CORS(app, supports_credentials=True, resources=[

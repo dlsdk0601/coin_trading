@@ -2,8 +2,7 @@ from uuid import uuid4, UUID
 
 from sqlalchemy import func
 
-from was.application import app
-from was.blueprints import bg
+from was.blueprints import bg, sf
 from was.ex.api import Res, err, ok
 from was.ex.pydantic_ex import BaseModel
 from was.model import db
@@ -19,7 +18,7 @@ class SignInRes(BaseModel):
     token: UUID
 
 
-@app.post('/sign-in')
+@sf.post('/sign-in')
 def sign_in(req: SignInReq) -> Res[SignInRes]:
     manager_q = db.select(Manager).filter(Manager.id == req.id)
     manager: Manager | None = db.session.execute(manager_q).scalar_one_or_none()
@@ -52,7 +51,7 @@ class SignOutRes(BaseModel):
     pass
 
 
-@app.post('/sign-out')
+@sf.post('/sign-out')
 def sign_out(_: SignOutReq) -> Res[SignOutRes]:
     _sign_out()
     return ok(SignOutRes())

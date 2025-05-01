@@ -1,6 +1,7 @@
 from uuid import UUID
 
 from flask import Response, request, jsonify, session, has_request_context
+from flask.sansio.blueprints import Blueprint
 from sqlalchemy import func
 
 from was.application import app
@@ -53,6 +54,8 @@ class ManagerGlobal:
 
 
 bg = global_proxy('manager', ManagerGlobal)
+
+sf = Blueprint('sf', __name__, url_prefix='/sf')
 
 
 @app.before_request
