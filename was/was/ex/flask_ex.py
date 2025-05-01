@@ -3,8 +3,10 @@ import logging
 import pkgutil
 import sys
 from pathlib import Path
+from typing import TypeVar, Type
 
-from flask import Flask, request
+from flask import Flask, request, g
+from werkzeug.local import LocalProxy
 
 
 def initialize(app: Flask) -> None:
@@ -62,3 +64,15 @@ def remote_addr() -> str | None:
         return request.headers['X-Real-Ip']
     else:
         return request.remote_addr
+
+
+T = TypeVar('T')
+
+
+def global_proxy(name: str, builder: Type[T]) -> T:
+    def f():
+        if not hasattr(g, name):
+            setattr(g, name, builder())
+        return getattr(g, name)
+
+    return LocalProxy(f)  # type: ignore
