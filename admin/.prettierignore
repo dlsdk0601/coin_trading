@@ -1,0 +1,8 @@
+# 설정
+.eslint.config.mjs
+next.config.ts
+tsconfig.json
+.prettierrc
+tailwind.config.ts
+postcss.config.mjs
+
