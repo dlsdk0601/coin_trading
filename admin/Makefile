@@ -10,4 +10,4 @@ run:
 	nix-shell --run 'bun run dev'
 
 watch:
-	nix-shell --run 'bun --watch=src/app --extension=tsx bin/generateUrl.ts'
+	nix-shell --run 'nodemon --watch src/app -e tsx bin/generateUrl.ts'

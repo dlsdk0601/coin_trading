@@ -42,3 +42,6 @@ next-env.d.ts
 
 # jetbrain
 .idea
+
+#g.ts
+**.g.ts
