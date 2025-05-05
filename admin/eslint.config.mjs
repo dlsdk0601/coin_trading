@@ -1,6 +1,5 @@
 import js from "@eslint/js";
 import { FlatCompat } from "@eslint/eslintrc";
-import tsParser from "@typescript-eslint/parser";
 
 const compat = new FlatCompat({
   baseDirectory: import.meta.dirname,
@@ -9,6 +8,7 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.config({
+    ignorePatterns: ["eslint.config.mjs", "node_modules", ".prettierrc", "package.json"],
     extends: [
       "eslint:recommended",
       "next",
@@ -18,22 +18,16 @@ const eslintConfig = [
       "plugin:import/recommended",
       "plugin:jsx-a11y/recommended",
     ],
-    files: ["**/*.ts", "**/*.tsx"],
-    parser: tsParser,
-    parserOptions: {
-      ecmaVersion: "latest",
-      project: "./tsconfig.json",
-      tsconfigRootDir: ".",
-      sourceType: "module",
-    },
     plugins: ["import", "jsx-a11y", "react", "@typescript-eslint"],
     rules: {
+      // console 은 log 는 경고, warn 과 error 는 로직상 필요함으로 무시
+      "no-console": ["warn", { allow: ["warn", "error"] }],
       // 들여쓰기 2칸
       "indent": ["error", 2, { SwitchCase: 1 }],
       // double quotes 사용
       "quotes": ["error", "double", { avoidEscape: true }],
       // double quotes 사용 (ts용)
-      "@typescript-eslint/quotes": ["error", "double"],
+      "@/quotes": ["error", "double"],
       // endOfLine 맥을 사용하기에 \n (o) \r\n (x),
       "linebreak-style": "off",
       // 사용안한 변수 경고 x
@@ -149,8 +143,8 @@ const eslintConfig = [
       "import/no-extraneous-dependencies": "off",
       // loop continue 사용 허용
       "no-continue": "off",
-      // 자동 완성되는 interface는 빈 interface가 될수 있기에 비활성화
-      "@typescript-eslint/no-empty-object-type": "error",
+      // 자동 완성되는 interface 는 빈 interface 가 될수 있기에 비활성화
+      "@typescript-eslint/no-empty-object-type": "off",
       // faker 에서 loop 안에 await 사용을 위해
       "no-await-in-loop": "off",
       // javaScript 기능이나 구문을 사용
