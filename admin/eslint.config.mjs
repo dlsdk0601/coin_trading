@@ -8,7 +8,13 @@ const compat = new FlatCompat({
 
 const eslintConfig = [
   ...compat.config({
-    ignorePatterns: ["eslint.config.mjs", "node_modules", ".prettierrc", "package.json"],
+    ignorePatterns: [
+      "eslint.config.mjs",
+      "node_modules",
+      ".prettierrc",
+      "package.json",
+      "tailwind.config.ts",
+    ],
     extends: [
       "eslint:recommended",
       "next",
