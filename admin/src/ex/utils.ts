@@ -36,3 +36,11 @@ export const isBlank = (v: any): v is null | undefined => {
 
   return false;
 };
+
+export const isNotBlank = (v: any): boolean => {
+  return !isBlank(v);
+};
+
+export const isNotNil = (v: any): boolean => {
+  return !isNil(v);
+};
