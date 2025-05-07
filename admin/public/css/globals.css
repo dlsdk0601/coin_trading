@@ -1,10 +1,8 @@
 @import url("https://fonts.googleapis.com/css2?family=Inter:wght@100;200;300;400;500;600;700;800;900&display=swap");
 @import "tailwindcss";
 
-@theme inline {
-  --font-satoshi: var(--font-satoshi);
-  --font-sans-serif: var(--font-sans-serif);
-}
+
+@config "../../tailwind.config.ts";
 
 @layer base {
   body {
@@ -43,6 +41,7 @@
 
 .tableCheckbox:checked ~ div {
   @apply border-primary bg-primary;
+  /*@apply  bg-primary;*/
 }
 
 .apexcharts-legend-text {
