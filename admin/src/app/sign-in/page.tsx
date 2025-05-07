@@ -1,9 +1,9 @@
 "use client";
 
-import { useActionState, useEffect } from "react";
 import Link from "next/link";
-import { isNil } from "lodash";
+import { useActionState, useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { isNil } from "lodash";
 import TextFieldView from "../../view/textFieldView";
 import { EmailIcon, LockIcon } from "../../view/icons";
 import { signIn } from "../../actions/auth";
@@ -30,13 +30,13 @@ const Page = () => {
 
   return (
     <form action={action}>
-      <TextFieldView name="id" icon={<EmailIcon />} error={state?.errors?.id?.join("\n")} />
+      <TextFieldView name="id" icon={<EmailIcon />} error={state?.errors?.id?.at(0)} />
 
       <TextFieldView
         type="password"
         name="password"
         icon={<LockIcon />}
-        error={state?.errors?.password?.join("\n")}
+        error={state?.errors?.password?.at(0)}
       />
 
       <div className="mb-5">
