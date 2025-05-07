@@ -5,8 +5,10 @@ import sys
 from pathlib import Path
 from typing import TypeVar, Type
 
-from flask import Flask, request, g
+from flask import Flask, request, g, Response, current_app
 from werkzeug.local import LocalProxy
+
+from was.ex.api import Res
 
 
 def initialize(app: Flask) -> None:
@@ -76,3 +78,7 @@ def global_proxy(name: str, builder: Type[T]) -> T:
         return getattr(g, name)
 
     return LocalProxy(f)  # type: ignore
+
+
+def res_jsonify(res: Res) -> Response:
+    return current_app.response_class(res.model_dump_json(by_alias=True))
