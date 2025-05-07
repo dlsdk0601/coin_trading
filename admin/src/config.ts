@@ -1,6 +1,6 @@
 class Config {
   apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
-  secretKey = process.env.SECRET_KEY ?? "test-key";
+  secretKey = process.env.NEXT_PUBLIC_SECRET_KEY ?? "test-key";
   tokenKey = "coin-trading.admin.token";
   sessionKey = "session";
 
