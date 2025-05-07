@@ -1,7 +1,9 @@
+"use server";
+
 import { isNil } from "lodash";
 import { FormState, SignInFormSchema } from "./definition";
-import { createSession } from "./session";
 import { api } from "../api/api";
+import { createSession } from "./session";
 
 export async function signIn(state: FormState, formData: FormData) {
   const validatedFields = SignInFormSchema.safeParse({
