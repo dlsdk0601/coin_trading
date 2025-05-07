@@ -132,8 +132,8 @@ class ApiBase {
 }
 
 class Api extends ApiBase {
-  signIn = this.c<SignInReq, SignInRes>("/api/sign-in");
-  auth = this.c<AuthReq, AuthRes>("/api/auth");
+  signIn = this.c<SignInReq, SignInRes>("/sf/sign-in");
+  auth = this.c<AuthReq, AuthRes>("/sf/auth");
 }
 
 const handler = new Handler();
