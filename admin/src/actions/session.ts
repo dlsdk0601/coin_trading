@@ -24,7 +24,7 @@ export async function decrypt(session: string = "") {
     });
     return payload;
   } catch (err) {
-    console.error(`Failed to verify session, err=${err}`);
+    console.warn(`Failed to verify session, err=${err}`);
   }
 }
 
@@ -89,11 +89,12 @@ export const getUser = cache(async () => {
     const res = await api.auth({});
 
     if (isNil(res)) {
-      return null;
+      redirect(Urls["sign-in"].page.url());
     }
 
     return res;
   } catch (e) {
+    // 실패라면 API 실패 일 것이다.
     console.error(e);
     return null;
   }
