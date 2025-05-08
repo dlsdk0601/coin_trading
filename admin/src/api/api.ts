@@ -1,33 +1,37 @@
 import { isNil, map } from "lodash";
+import { cookies } from "next/headers";
 import {
-  AuthReq,
-  AuthRes,
   PydanticValidationError,
   Res,
+  ResError,
   ResStatus,
   SignInReq,
   SignInRes,
+  SignOutReq,
+  SignOutRes,
+  SignReq,
+  SignRes,
 } from "./schema";
 import { config } from "../config";
+import { isNotNil } from "../ex/utils";
+import { decrypt } from "../actions/session";
 
 export interface ApiHandler {
   catch(e: any): void;
 
-  handleValidationErrors(errors: PydanticValidationError[]): void;
+  handleValidationErrors(errors: PydanticValidationError[]): string;
 
-  handlerErrors(errors: string[]): void;
+  handlerErrors(errors: string[]): string;
 
-  handleStatus(status: ResStatus): void;
+  handleStatus(status: ResStatus): string;
 
-  beforeRequest(headers: Record<string, string>): void;
+  beforeRequest(headers: Record<string, string>): Promise<void>;
 }
 
 class Handler implements ApiHandler {
   catch(e: any) {
     console.error(e);
-
-    // TODO :: 여기서의 throw 가 컴포넌트에서 어떤 영향을 미칠지 확인
-    throw e;
+    throw new Error(e);
   }
 
   handleValidationErrors(errors: PydanticValidationError[]) {
@@ -35,38 +39,46 @@ class Handler implements ApiHandler {
 
     const messages = map(errors, (err) => `${err.loc} : ${err.msg}`).join("\n");
     if (messages) {
-      throw new Error(messages);
-    } else {
-      throw new Error(JSON.stringify(errors, null, 2));
+      return messages;
     }
+    return JSON.stringify(errors, null, 2);
   }
 
   handlerErrors(errors: string[]) {
     console.error(...errors);
-    throw new Error(errors.join("\n"));
+    return errors.join("\n");
   }
 
   handleStatus(status: ResStatus) {
     switch (status) {
       case "OK":
-        return;
+        return "";
       case "NO_PERMISSION":
-        throw new Error("해당 기능의 권한이 없습니다.");
+        return "해당 기능의 권한이 없습니다.";
       case "INVALID_ACCESS_TOKEN":
-        // TODO :: 비 로그인 유저도 고려 해야하는데, ERROR 정의를 어떻게 할지 후에 결정
-        return;
+        return "로그인을 재시도 해주세요.";
       case "LOGIN_REQUIRED":
-        throw new Error("로그인 페이지로 이동합니다.");
+        return "로그인 페이지로 이동합니다.";
       case "NOT_FOUND":
       default: {
-        throw new Error("존재하지 않는 페이지 또는 데이터입니다.");
+        return "존재하지 않는 페이지 또는 데이터입니다.";
       }
     }
   }
 
-  beforeRequest(headers: Record<string, string>) {
-    const token = sessionStorage.getItem(config.tokenKey);
-    if (!isNil(token)) {
+  async beforeRequest(headers: Record<string, string>) {
+    let token: string | null = null;
+    if (typeof window !== "undefined" && isNotNil(sessionStorage)) {
+      token = sessionStorage.getItem(config.tokenKey);
+    } else {
+      const session = (await cookies()).get(config.sessionKey)?.value;
+      const payload = await decrypt(session);
+      if (isNotNil(payload)) {
+        token = payload.token as string;
+      }
+    }
+
+    if (isNotNil(token)) {
       headers["Authorization"] = token;
     }
   }
@@ -81,10 +93,10 @@ class ApiBase {
     this.handler = handler;
   }
 
-  async f<U>(url: string, req: any): Promise<U | null> {
+  async f<U>(url: string, req: any): Promise<U | ResError> {
     try {
       const headers: Record<string, string> = {};
-      this.handler.beforeRequest(headers);
+      await this.handler.beforeRequest(headers);
       let body = req;
       if (!(body instanceof FormData)) {
         headers["Content-Type"] = "application/json";
@@ -103,28 +115,32 @@ class ApiBase {
       return this.handleResponse(res);
     } catch (e) {
       this.handler.catch(e);
-      return null;
+      return { error: "알 수 없는 에러가 발생했습니다. [100]" };
     }
   }
 
-  protected c<T, U>(url: string): (req: T) => Promise<U | null> {
+  protected c<T, U>(url: string): (req: T) => Promise<U | ResError> {
     return async (req) => this.f(url, req);
   }
 
-  private handleResponse<U>(res: Res<U>) {
+  private handleResponse<U>(res: Res<U>): U | ResError {
     if (res.status !== "OK") {
-      this.handler.handleStatus(res.status);
-      return null;
+      const error = this.handler.handleStatus(res.status);
+      return { error };
     }
 
     if (res.validationErrors.length) {
-      this.handler.handleValidationErrors(res.validationErrors);
-      return null;
+      const error = this.handler.handleValidationErrors(res.validationErrors);
+      return { error };
     }
 
     if (res.errors.length) {
-      this.handler.handlerErrors(res.errors);
-      return null;
+      const error = this.handler.handlerErrors(res.errors);
+      return { error };
+    }
+
+    if (isNil(res.data)) {
+      return { error: "알 수 없는 에러가 발생했습니다. [101]" };
     }
 
     return res.data;
@@ -133,7 +149,8 @@ class ApiBase {
 
 class Api extends ApiBase {
   signIn = this.c<SignInReq, SignInRes>("/sf/sign-in");
-  auth = this.c<AuthReq, AuthRes>("/sf/auth");
+  sign = this.c<SignReq, SignRes>("/sf/sign");
+  signOut = this.c<SignOutReq, SignOutRes>("/sf/sign-out");
 }
 
 const handler = new Handler();

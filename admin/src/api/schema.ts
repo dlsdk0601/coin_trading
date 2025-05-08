@@ -17,6 +17,10 @@ export interface Res<T> {
   status: ResStatus;
 }
 
+export interface ResError {
+  error: string;
+}
+
 export interface SignInReq {
   id: string;
   password: string;
@@ -26,9 +30,13 @@ export interface SignInRes {
   token: string;
 }
 
-export interface AuthReq {}
+export interface SignOutReq {}
 
-export interface AuthRes {
+export interface SignOutRes {}
+
+export interface SignReq {}
+
+export interface SignRes {
   pk: number;
   id: string;
 }
