@@ -41,6 +41,8 @@ export const isNotBlank = (v: any): boolean => {
   return !isBlank(v);
 };
 
-export const isNotNil = (v: any): boolean => {
+export type NotNil<T> = T extends null | undefined | void ? never : T;
+
+export const isNotNil = <T>(v: T): v is NotNil<T> => {
   return !isNil(v);
 };
