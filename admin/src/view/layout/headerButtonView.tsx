@@ -1,22 +1,20 @@
 "use client";
 
-import React, { useState } from "react";
+import React from "react";
 import Link from "next/link";
 import Image from "next/image";
 import classNames from "classnames";
-// import useDarkMode from "../../hooks/useDarkMode";
+import useDarkMode from "../../hooks/useDarkMode";
+import { layoutModel } from "../../model/ui";
 
 export const LeftSidebarButtonView = () => {
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
-  // const { isSidebarOpen, onToggleSideBar } = layoutModel((state) => state);
+  const { isSidebarOpen, onToggleClick } = layoutModel((state) => state);
   return (
     <div className="flex items-center gap-2 sm:gap-4 lg:hidden">
       <button
         type="button"
         aria-controls="sidebar"
-        onClick={() => {
-          setIsSidebarOpen(!isSidebarOpen);
-        }}
+        onClick={() => onToggleClick()}
         className="border-stroke dark:border-strokedark dark:bg-boxdark z-99999 block rounded-sm border bg-white p-1.5 shadow-sm lg:hidden"
       >
         <span className="relative block h-5.5 w-5.5 cursor-pointer">
@@ -60,8 +58,7 @@ export const LeftSidebarButtonView = () => {
 };
 
 export const DarkModeSwitcher = () => {
-  // const { isDark, onClickToggleButton } = useDarkMode();
-  const [isDark, setIsDark] = useState(false);
+  const { isDark, onToggleClick } = useDarkMode();
 
   return (
     <li>
@@ -73,7 +70,7 @@ export const DarkModeSwitcher = () => {
       >
         <input
           type="checkbox"
-          onChange={() => setIsDark(!isDark)}
+          onChange={() => onToggleClick()}
           className="dur absolute top-0 z-50 m-0 h-full w-full cursor-pointer opacity-0"
         />
         <span

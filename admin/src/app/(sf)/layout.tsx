@@ -5,10 +5,9 @@ import { getUser } from "../../actions/dal";
 
 const Layout = async (props: PropsWithChildren) => {
   const user = await getUser();
-  console.log(user);
   return (
     <div className="flex h-screen overflow-hidden">
-      <LeftSidebarView />
+      <LeftSidebarView user={user} />
       <div className="relative flex flex-1 flex-col overflow-x-hidden overflow-y-auto">
         <HeaderView />
         <main>

@@ -1,4 +1,4 @@
-import React, { PropsWithChildren, Suspense } from "react";
+import React, { PropsWithChildren } from "react";
 
 const Layout = (props: PropsWithChildren) => {
   return (
@@ -8,8 +8,7 @@ const Layout = (props: PropsWithChildren) => {
           <h2 className="sm:text-title-xl2 mb-9 text-2xl font-bold text-black dark:text-white">
             Sign In to Portfolio Admin
           </h2>
-
-          <Suspense>{props.children}</Suspense>
+          {props.children}
         </div>
       </div>
     </div>

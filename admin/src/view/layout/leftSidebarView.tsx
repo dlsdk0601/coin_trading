@@ -6,10 +6,12 @@ import React, { ReactNode, useState } from "react";
 import { usePathname } from "next/navigation";
 import classNames from "classnames";
 import { Urls } from "../../url/url.g";
+import { layoutModel } from "../../model/ui";
+import { SignRes } from "../../api/schema";
 
-const LeftSidebarView = () => {
+const LeftSidebarView = (props: { user: SignRes }) => {
   const pathname = usePathname();
-  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  const { isSidebarOpen, onToggleClick } = layoutModel((state) => state);
 
   return (
     <aside
@@ -28,7 +30,7 @@ const LeftSidebarView = () => {
 
         <button
           type="button"
-          onClick={() => setIsSidebarOpen(!isSidebarOpen)}
+          onClick={() => onToggleClick()}
           aria-controls="sidebar"
           aria-expanded={isSidebarOpen}
           className="block lg:hidden"
@@ -53,55 +55,6 @@ const LeftSidebarView = () => {
         <nav className="mt-5 px-4 py-4 lg:mt-9 lg:px-6">
           <div>
             <ul className="mb-6 flex flex-col gap-1.5">
-              {/* <li> */}
-              {/* <Link */}
-              {/*   href={Urls.account.page.url()} */}
-              {/*   className={classNames( */}
-              {/*     "group flex items-center gap-2.5
-              // rounded-sm px-4 py-2 font-medium leading-none text-bodydark1 duration-300
-              // ease-in-out hover:bg-graydark dark:hover:bg-meta-4", */}
-              {/*     { */}
-              {/*       "bg-graydark dark:bg-meta-4": pathname === Urls.account.page.pathname, */}
-              {/*     }, */}
-              {/*   )} */}
-              {/* > */}
-              {/*   <i className="mdi mdi-account-outline text-lg" /> */}
-              {/*   계정 */}
-              {/* </Link> */}
-              {/* </li> */}
-              {/* <li> */}
-              {/* <Link */}
-              {/*   href={Urls.contact.page.url()} */}
-              {/*   className={classNames( */}
-              {/*     "group flex items-center gap-2.5 rounded-sm px-4 py-2
-               // font-medium leading-none text-bodydark1 duration-300 ease-in-out
-               // hover:bg-graydark dark:hover:bg-meta-4", */}
-              {/*     { */}
-              {/*       "bg-graydark dark:bg-meta-4": pathname === Urls.contact.page.pathname, */}
-              {/*     }, */}
-              {/*   )} */}
-              {/* > */}
-              {/*   <i className="mdi mdi-contacts-outline text-lg" /> */}
-              {/*   연락처 */}
-              {/* </Link> */}
-              {/* </li> */}
-              {/* <li> */}
-              {/* <Link */}
-              {/*   href={Urls.project.page.url()} */}
-              {/*   className={classNames( */}
-              {/*     "group flex items-center gap-2.5 rounded-sm px-4 py-2 font-medium
-              // leading-none text-bodydark1 duration-300 ease-in-out
-              // hover:bg-graydark dark:hover:bg-meta-4", */}
-              {/*     { */}
-              {/*       "bg-graydark dark:bg-meta-4": pathname === Urls.project.page.pathname, */}
-              {/*     }, */}
-              {/*   )} */}
-              {/* > */}
-              {/*   <i className="mdi mdi-file-document-multiple-outline text-lg" /> */}
-              {/*   프로젝트 */}
-              {/* </Link> */}
-              {/* </li> */}
-
               {/* <!-- Menu Item Dashboard --> */}
               <SidebarLinkGroup isActive={pathname === "/" || pathname.includes("dashboard")}>
                 {(handleClick, open) => {
