@@ -9,6 +9,7 @@ import { EmailIcon, LockIcon } from "../../view/icons";
 import { signIn } from "../../actions/auth";
 import { config } from "../../config";
 import { Urls } from "../../url/url.g";
+import { isNotNil } from "../../ex/utils";
 
 const Page = () => {
   const router = useRouter();
@@ -19,7 +20,7 @@ const Page = () => {
       return;
     }
 
-    const token = state?.token;
+    const token = state?.data?.token;
     if (isNil(token)) {
       return;
     }
@@ -30,16 +31,14 @@ const Page = () => {
 
   return (
     <form action={action}>
-      <TextFieldView name="id" icon={<EmailIcon />} error={state?.errors?.id?.at(0)} />
+      <TextFieldView name="id" icon={<EmailIcon />} />
 
-      <TextFieldView
-        type="password"
-        name="password"
-        icon={<LockIcon />}
-        error={state?.errors?.password?.at(0)}
-      />
+      <TextFieldView type="password" name="password" icon={<LockIcon />} />
 
       <div className="mb-5">
+        {isNotNil(state?.error) && (
+          <p className="text-meta-1 my-1 text-center text-xs italic">{state?.error}</p>
+        )}
         <input
           type="submit"
           value="Sign In"
