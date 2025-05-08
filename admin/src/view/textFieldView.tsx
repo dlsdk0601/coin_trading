@@ -1,6 +1,8 @@
+"use client";
+
 import classNames from "classnames";
 import { isNil } from "lodash";
-import { ReactNode } from "react";
+import { ReactNode, useState } from "react";
 import { isBlank, isNotBlank, isNotNil } from "../ex/utils";
 
 const TextFieldView = (props: {
@@ -12,6 +14,7 @@ const TextFieldView = (props: {
   type?: "text" | "password" | "email" | "tel";
   error?: string;
 }) => {
+  const [value, setValue] = useState("");
   return (
     <div
       className={classNames("mb-5.5 w-full", {
@@ -26,6 +29,8 @@ const TextFieldView = (props: {
         {props.icon}
         <input
           type={props.type ?? "text"}
+          value={value}
+          onChange={(e) => setValue(e.target.value)}
           className={classNames(
             "dark:bg-meta-4 dark:focus:border-primary w-full rounded border py-3 pr-4.5 text-black focus-visible:outline-none dark:text-white",
             {
