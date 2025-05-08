@@ -29,7 +29,7 @@ const eslintConfig = [
       // console 은 log 는 경고, warn 과 error 는 로직상 필요함으로 무시
       "no-console": ["warn", { allow: ["warn", "error"] }],
       // 들여쓰기 2칸
-      "indent": ["error", 2, { SwitchCase: 1 }],
+      "indent": ["error", "2tab", { SwitchCase: 1 }],
       // double quotes 사용
       "quotes": ["error", "double", { avoidEscape: true }],
       // double quotes 사용 (ts용)
