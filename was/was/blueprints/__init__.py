@@ -5,8 +5,7 @@ from sqlalchemy import func
 
 from was.blueprints.sf.config import config
 from was.blueprints.sf.sign import auth
-from was.ex.api import Res, ResStatus
-from was.ex.flask_ex import res_jsonify
+from was.ex.api import Res, ResStatus, res_jsonify
 from was.model import db
 from was.model.manager import ManagerAuthentication
 
@@ -20,7 +19,6 @@ def before_request() -> Response | None:
     raw_access_token = request.headers.get('Authorization')
     manager_auth: ManagerAuthentication | None = None
     access_token: UUID | None = None
-
     if raw_access_token:
         try:
             access_token = UUID(raw_access_token)
@@ -41,7 +39,7 @@ def before_request() -> Response | None:
     if not manager_auth:
         require_access_token = True
         match ((request.endpoint or '').split('.', maxsplit=2)):
-            case [_, endpoint]:
+            case [_, _, endpoint]:
                 if endpoint in ['sign_in']:
                     require_access_token = False
             case _:
