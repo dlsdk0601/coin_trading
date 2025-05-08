@@ -4,6 +4,7 @@ import { isNil } from "lodash";
 import { config as systemConfig } from "./config";
 import { decrypt } from "./actions/session";
 import { Urls } from "./url/url.g";
+import { isNotNil } from "./ex/utils";
 
 const publicRoutes = ["/sign-in"];
 
@@ -13,9 +14,15 @@ export default async function middleware(req: NextRequest) {
   const cookie = (await cookies()).get(systemConfig.sessionKey)?.value;
   const session = await decrypt(cookie);
 
+  const isRequireSignIn = isNil(session) && !publicRoutes.includes(path);
   // session 은 없으면 무조건 로그인 페이지로
-  if (!publicRoutes.includes(path) && isNil(session)) {
+  if (isRequireSignIn) {
     return NextResponse.redirect(new URL(Urls["sign-in"].page.url(), req.nextUrl));
+  }
+
+  // session 이 있는데 로그인 접속 하면 무조건 index 페이지로
+  if (isNotNil(session) && publicRoutes.includes(path)) {
+    return NextResponse.redirect(new URL(Urls.page.url(), req.nextUrl));
   }
 
   // session 만 있다면 어디든 갈 수 있다
