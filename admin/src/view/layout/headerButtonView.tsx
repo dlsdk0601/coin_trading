@@ -1,50 +1,50 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
 import classNames from "classnames";
-import { layoutModel } from "../../store/layoutModel";
-import useDarkMode from "../../hooks/useDarkMode";
+// import useDarkMode from "../../hooks/useDarkMode";
 
 export const LeftSidebarButtonView = () => {
-  const { isSidebarOpen, onToggleSideBar } = layoutModel((state) => state);
+  const [isSidebarOpen, setIsSidebarOpen] = useState(false);
+  // const { isSidebarOpen, onToggleSideBar } = layoutModel((state) => state);
   return (
     <div className="flex items-center gap-2 sm:gap-4 lg:hidden">
       <button
         type="button"
         aria-controls="sidebar"
         onClick={() => {
-          onToggleSideBar();
+          setIsSidebarOpen(!isSidebarOpen);
         }}
-        className="z-99999 block rounded-sm border border-stroke bg-white p-1.5 shadow-sm dark:border-strokedark dark:bg-boxdark lg:hidden"
+        className="border-stroke dark:border-strokedark dark:bg-boxdark z-99999 block rounded-sm border bg-white p-1.5 shadow-sm lg:hidden"
       >
         <span className="relative block h-5.5 w-5.5 cursor-pointer">
           <span className="du-block absolute right-0 h-full w-full">
             <span
-              className={`relative left-0 top-0 my-1 block h-0.5 w-0 rounded-sm bg-black delay-[0] duration-200 ease-in-out dark:bg-white ${
+              className={`relative top-0 left-0 my-1 block h-0.5 w-0 rounded-sm bg-black delay-[0] duration-200 ease-in-out dark:bg-white ${
                 !isSidebarOpen && "!w-full delay-300"
               }`}
             />
             <span
-              className={`relative left-0 top-0 my-1 block h-0.5 w-0 rounded-sm bg-black delay-150 duration-200 ease-in-out dark:bg-white ${
-                !isSidebarOpen && "delay-400 !w-full"
+              className={`relative top-0 left-0 my-1 block h-0.5 w-0 rounded-sm bg-black delay-150 duration-200 ease-in-out dark:bg-white ${
+                !isSidebarOpen && "!w-full delay-400"
               }`}
             />
             <span
-              className={`relative left-0 top-0 my-1 block h-0.5 w-0 rounded-sm bg-black delay-200 duration-200 ease-in-out dark:bg-white ${
+              className={`relative top-0 left-0 my-1 block h-0.5 w-0 rounded-sm bg-black delay-200 duration-200 ease-in-out dark:bg-white ${
                 !isSidebarOpen && "!w-full delay-500"
               }`}
             />
           </span>
           <span className="absolute right-0 h-full w-full rotate-45">
             <span
-              className={`absolute left-2.5 top-0 block h-full w-0.5 rounded-sm bg-black delay-300 duration-200 ease-in-out dark:bg-white ${
+              className={`absolute top-0 left-2.5 block h-full w-0.5 rounded-sm bg-black delay-300 duration-200 ease-in-out dark:bg-white ${
                 !isSidebarOpen && "!h-0 !delay-[0]"
               }`}
             />
             <span
-              className={`delay-400 absolute left-0 top-2.5 block h-0.5 w-full rounded-sm bg-black duration-200 ease-in-out dark:bg-white ${
+              className={`absolute top-2.5 left-0 block h-0.5 w-full rounded-sm bg-black delay-400 duration-200 ease-in-out dark:bg-white ${
                 !isSidebarOpen && "!h-0 !delay-200"
               }`}
             />
@@ -60,7 +60,8 @@ export const LeftSidebarButtonView = () => {
 };
 
 export const DarkModeSwitcher = () => {
-  const { isDark, onClickToggleButton } = useDarkMode();
+  // const { isDark, onClickToggleButton } = useDarkMode();
+  const [isDark, setIsDark] = useState(false);
 
   return (
     <li>
@@ -72,12 +73,12 @@ export const DarkModeSwitcher = () => {
       >
         <input
           type="checkbox"
-          onChange={() => onClickToggleButton()}
+          onChange={() => setIsDark(!isDark)}
           className="dur absolute top-0 z-50 m-0 h-full w-full cursor-pointer opacity-0"
         />
         <span
           className={classNames(
-            "absolute left-[3px] top-1/2 flex h-6 w-6 -translate-y-1/2 translate-x-0 items-center justify-center rounded-full bg-white shadow-switcher duration-75 ease-linear",
+            "shadow-switcher absolute top-1/2 left-[3px] flex h-6 w-6 translate-x-0 -translate-y-1/2 items-center justify-center rounded-full bg-white duration-75 ease-linear",
             {
               "!right-[3px] !translate-x-full": isDark,
             },
