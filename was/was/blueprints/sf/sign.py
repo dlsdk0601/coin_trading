@@ -1,10 +1,10 @@
 from uuid import uuid4, UUID
 
-from flask import Blueprint, request
+from flask import Blueprint
 from sqlalchemy import func
 
 from was.blueprints.sf import bg
-from was.ex.api import Res, err, ok, get_req
+from was.ex.api import err, ok, get_req
 from was.ex.pydantic_ex import BaseModel
 from was.model import db
 from was.model.manager import Manager, ManagerAuthentication
@@ -25,7 +25,7 @@ class SignInRes(BaseModel):
 def sign_in():
     req = get_req(SignInReq)
     manager_q = db.select(Manager).filter(Manager.id == req.id)
-    manager: Manager | None = db.session.execute(manager_q).scalar_one_or_none()
+    manager = db.session.execute(manager_q).scalar_one_or_none()
 
     if not manager:
         return err('계정이 존재하지 않습니다.')
@@ -56,7 +56,7 @@ class SignOutRes(BaseModel):
 
 
 @auth.post('/sign-out')
-def sign_out(_: SignOutReq) -> Res[SignOutRes]:
+def sign_out():
     _sign_out()
     return ok(SignOutRes())
 
@@ -88,6 +88,7 @@ class SignReq(BaseModel):
 class SignRes(BaseModel):
     pk: int
     id: str
+
 
 @auth.post('/sign')
 def sign():

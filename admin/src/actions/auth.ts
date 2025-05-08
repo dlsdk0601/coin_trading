@@ -3,7 +3,7 @@
 import { isNil } from "lodash";
 import { FormRes, isError, SignInFormSchema } from "./definition";
 import { api } from "../api/api";
-import { createSession } from "./session";
+import { createSession, deleteSession } from "./session";
 import { SignInRes } from "../api/schema";
 
 export async function signIn(state: FormRes<SignInRes>, formData: FormData) {
@@ -28,6 +28,16 @@ export async function signIn(state: FormRes<SignInRes>, formData: FormData) {
   await createSession(res.token);
 
   return { data: { token: res.token } };
+}
+
+export async function signOut() {
+  const res = await api.signOut({});
+
+  if (isError(res)) {
+    return { error: res.error };
+  }
+
+  await deleteSession();
 }
 
 function getErrorMessage(error: Record<string, string[] | undefined>): string {

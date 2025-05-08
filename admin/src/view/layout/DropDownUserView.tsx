@@ -5,6 +5,7 @@ import Link from "next/link";
 import classNames from "classnames";
 import { useClickOutside } from "../../hooks/useClickOutside";
 import { Urls } from "../../url/url.g";
+import { signOut } from "../../actions/auth";
 
 const DropDownUserView = () => {
   const ref = useRef<HTMLDivElement>(null);
@@ -59,8 +60,8 @@ const DropDownUserView = () => {
         </ul>
         <button
           type="button"
-          className="hover:text-primary flex items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out lg:text-base"
-          onClick={() => {}}
+          className="hover:text-primary flex cursor-pointer items-center gap-3.5 px-6 py-4 text-sm font-medium duration-300 ease-in-out lg:text-base"
+          onClick={() => signOut()}
         >
           <i className="mdi mdi-logout text-2xl" />
           Log Out
