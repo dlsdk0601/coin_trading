@@ -1,7 +1,7 @@
 import { PropsWithChildren } from "react";
 import { HeaderView } from "../../view/layout/HeaderView";
 import LeftSidebarView from "../../view/layout/leftSidebarView";
-import { getUser } from "../../actions/session";
+import { getUser } from "../../actions/dal";
 
 const Layout = async (props: PropsWithChildren) => {
   const user = await getUser();
