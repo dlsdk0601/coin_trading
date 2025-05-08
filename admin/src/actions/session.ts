@@ -7,7 +7,12 @@ import { now } from "../ex/dayjsEx";
 import { config } from "../config";
 import { Urls } from "../url/url.g";
 
-export async function encrypt(payload: JWTPayload) {
+export interface Payload extends JWTPayload {
+  token: string;
+  expiresAt: Date;
+}
+
+export async function encrypt(payload: Payload) {
   return new SignJWT(payload)
     .setProtectedHeader({ alg: "HS256" })
     .setIssuedAt()
@@ -20,7 +25,7 @@ export async function decrypt(session: string = "") {
     const { payload } = await jwtVerify(session, config.encodedKey, {
       algorithms: ["HS256"],
     });
-    return payload;
+    return payload as Payload;
   } catch (err) {
     console.warn(`Failed to verify session, err=${err}`);
   }
