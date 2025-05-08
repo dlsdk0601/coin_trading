@@ -14,8 +14,9 @@ export const verifySession = cache(async () => {
   const cookie = (await cookies()).get(config.sessionKey)?.value;
   const session = await decrypt(cookie);
 
-  if (isNil(session) || !session.token) {
-    redirect(Urls["sign-in"].page.url());
+  const token: string | undefined = session?.token;
+  if (isNil(session) || isNil(token)) {
+    return { isAuth: false, token: "" };
   }
 
   return { isAuth: true, token: session.token };
@@ -24,8 +25,8 @@ export const verifySession = cache(async () => {
 export const getUser = cache(async () => {
   const session = await verifySession();
 
-  if (isNil(session)) {
-    return null;
+  if (!session.isAuth) {
+    redirect(Urls["sign-in"].page.url());
   }
 
   try {
@@ -38,10 +39,6 @@ export const getUser = cache(async () => {
     return res;
   } catch (e) {
     console.error(e);
-    return { error: "알 수 없는 에러가 발생했습니다. [102]" };
+    redirect(Urls["sign-in"].page.url());
   }
 });
-
-export const a = () => {
-  console.log("d");
-};
