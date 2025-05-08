@@ -1,4 +1,5 @@
 class Config {
+  readonly debug = process.env.NEXT_PUBLIC_DEBUG === "true";
   apiBaseUrl = process.env.NEXT_PUBLIC_API_URL ?? "http://localhost:5001";
   secretKey = process.env.NEXT_PUBLIC_SECRET_KEY ?? "test-key";
   tokenKey = "coin-trading.admin.token";
