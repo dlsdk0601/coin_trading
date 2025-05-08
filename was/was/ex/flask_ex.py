@@ -80,5 +80,3 @@ def global_proxy(name: str, builder: Type[T]) -> T:
     return LocalProxy(f)  # type: ignore
 
 
-def res_jsonify(res: Res) -> Response:
-    return current_app.response_class(res.model_dump_json(by_alias=True))

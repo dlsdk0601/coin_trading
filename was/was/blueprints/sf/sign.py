@@ -1,10 +1,10 @@
 from uuid import uuid4, UUID
 
-from flask import Blueprint
+from flask import Blueprint, request
 from sqlalchemy import func
 
 from was.blueprints.sf import bg
-from was.ex.api import Res, err, ok
+from was.ex.api import Res, err, ok, get_req
 from was.ex.pydantic_ex import BaseModel
 from was.model import db
 from was.model.manager import Manager, ManagerAuthentication
@@ -22,7 +22,8 @@ class SignInRes(BaseModel):
 
 
 @auth.post('/sign-in')
-def sign_in(req: SignInReq) -> Res[SignInRes]:
+def sign_in():
+    req = get_req(SignInReq)
     manager_q = db.select(Manager).filter(Manager.id == req.id)
     manager: Manager | None = db.session.execute(manager_q).scalar_one_or_none()
 
@@ -78,3 +79,18 @@ def _sign_out():
 
     token.expired_at = func.now()
     db.session.commit()
+
+
+class SignReq(BaseModel):
+    pass
+
+
+class SignRes(BaseModel):
+    pk: int
+    id: str
+
+@auth.post('/sign')
+def sign():
+    manager = bg.manager
+
+    return ok(SignRes(pk=manager.pk, id=manager.id))

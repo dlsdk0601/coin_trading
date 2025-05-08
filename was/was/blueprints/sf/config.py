@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-from was.ex.api import Res, ok
+from was.ex.api import Res, ok, get_req
 from was.ex.pydantic_ex import BaseModel
 from was.model import db
 from was.model.config import Config
@@ -27,7 +27,8 @@ class ConfigListRes(BaseModel):
 
 
 @config.post('config-list')
-def config_list(_: ConfigListRes) -> Res[ConfigListRes]:
+def config_list():
+    _ = get_req(ConfigListReq)
     configs_q = db.select(Config)
     configs = db.session.execute(configs_q).scalars().all()
 
