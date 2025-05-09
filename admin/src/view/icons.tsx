@@ -47,3 +47,9 @@ export const YellowBadge = (props: { label: string }) => {
     </p>
   );
 };
+
+export const Settings = () => {
+  return (
+    <i className="mdi mdi-code-json text-xl" />
+  );
+}
