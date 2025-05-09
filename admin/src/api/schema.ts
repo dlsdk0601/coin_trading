@@ -40,3 +40,15 @@ export interface SignRes {
   pk: number;
   id: string;
 }
+
+export interface ConfigListReq{}
+
+export interface ConfigListResItem {
+  pk: number
+  key: string;
+  value: string;
+}
+
+export interface ConfigListRes {
+  items: ConfigListResItem[];
+}

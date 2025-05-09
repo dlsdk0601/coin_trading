@@ -1,6 +1,8 @@
 import { isNil, map } from "lodash";
 import { cookies } from "next/headers";
 import {
+  ConfigListReq,
+  ConfigListRes,
   PydanticValidationError,
   Res,
   ResError,
@@ -151,6 +153,7 @@ class Api extends ApiBase {
   signIn = this.c<SignInReq, SignInRes>("/sf/sign-in");
   sign = this.c<SignReq, SignRes>("/sf/sign");
   signOut = this.c<SignOutReq, SignOutRes>("/sf/sign-out");
+  configList = this.c<ConfigListReq, ConfigListRes>("/sf/config-list");
 }
 
 const handler = new Handler();
