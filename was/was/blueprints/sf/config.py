@@ -1,6 +1,6 @@
 from flask import Blueprint
 
-from was.ex.api import Res, ok, get_req
+from was.ex.api import ok, get_req, err
 from was.ex.pydantic_ex import BaseModel
 from was.model import db
 from was.model.config import Config
@@ -35,3 +35,25 @@ def config_list():
     return ok(ConfigListRes(
         items=list(map(lambda x: ConfigListResItem.from_model(x), configs)))
     )
+
+
+class ConfigShowReq(BaseModel):
+    pk: int
+
+
+class ConfigShowRes(BaseModel):
+    pk: int
+    key: str
+    value: str
+
+
+@config.post('config-show')
+def config_show():
+    req = get_req(ConfigShowReq)
+    config_q = db.select(Config).filter(Config.pk == req.pk)
+    c = db.session.execute(config_q).scalar_one_or_none()
+
+    if c is None:
+        return err('데이터가 조회되지 않습니다.')
+
+    return ok(ConfigShowRes(pk=c.pk, key=c.key, value=c.value))
