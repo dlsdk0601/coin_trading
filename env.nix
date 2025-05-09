@@ -5,7 +5,7 @@ let
     sha256 = "1fsfkdjlqknzxi9jc38a0k0103rlxnjj59xg1s9a5bqb3scaxh9m";
   }) { };
     was = with pkgs; [ python312 postgresql_17 wait4x ];
-    admin = with pkgs; [ bun ];
+    admin = with pkgs; [ bun nodejs_20 ];
 
     packages = was ++ admin;
 in
